@@ -1,0 +1,16 @@
+# Vital project docs (local/reference only)
+vital_*.md
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+
+# Environment & secrets
+.env
+.env.*
+
+# Supabase
+.branches
+.temp
