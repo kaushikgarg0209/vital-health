@@ -3,14 +3,42 @@ vital_*.md
 
 # Dependencies
 node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
 # Build outputs
 dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# Testing
+coverage/
 
 # Environment & secrets
 .env
 .env.*
+!.env.example
 
-# Supabase
+# Logs & debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS & misc
+.DS_Store
+*.pem
+
+# Vercel
+.vercel
+
+# Supabase local
 .branches
 .temp
