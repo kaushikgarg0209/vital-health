@@ -25,7 +25,7 @@ vital-health/
 - Node.js 20+
 - npm
 - A [Supabase](https://supabase.com) project (URL + anon key + service role key)
-- Docker (optional, for local Redis in later phases)
+- Docker Desktop (for local Redis)
 
 ## Getting started
 
@@ -63,7 +63,32 @@ Required variables:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon (public) key |
 | `NEXT_PUBLIC_API_URL` | Backend API URL (`http://localhost:3001` for local dev) |
 
-### 3. Run development servers
+### 3. Start Redis (local)
+
+From the repo root:
+
+```bash
+docker compose up -d
+```
+
+Verify Redis is running:
+
+```bash
+docker exec -it redis redis-cli ping
+# PONG
+```
+
+Add `REDIS_URL=redis://localhost:6379` to `backend/.env` (included in `backend/.env.example`). The backend will use this in Phase 2 for background job queues.
+
+Useful commands:
+
+```bash
+docker compose ps        # check status
+docker compose down      # stop Redis
+docker compose logs redis  # view logs
+```
+
+### 4. Run development servers
 
 In separate terminals:
 
