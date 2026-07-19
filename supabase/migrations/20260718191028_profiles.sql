@@ -29,7 +29,9 @@ COMMENT ON TABLE public.profiles IS 'Extended user profile linked 1:1 with auth.
 -- TRIGGERS
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Auto-create a profile row when a new user signs up via Supabase Auth
+-- Create profile only when the user is confirmed (email verified).
+-- With confirmations disabled, Supabase sets email_confirmed_at on INSERT.
+-- With confirmations enabled, email_confirmed_at is set on UPDATE after the user clicks the link.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -37,11 +39,15 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name)
-  VALUES (
-    NEW.id,
-    COALESCE(NEW.raw_user_meta_data ->> 'full_name', '')
-  );
+  IF NEW.email_confirmed_at IS NOT NULL THEN
+    INSERT INTO public.profiles (id, full_name)
+    VALUES (
+      NEW.id,
+      COALESCE(NEW.raw_user_meta_data ->> 'full_name', '')
+    )
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
+
   RETURN NEW;
 END;
 $$;
@@ -50,6 +56,31 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_user();
+
+CREATE OR REPLACE FUNCTION public.handle_user_confirmed()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  IF OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL THEN
+    INSERT INTO public.profiles (id, full_name)
+    VALUES (
+      NEW.id,
+      COALESCE(NEW.raw_user_meta_data ->> 'full_name', '')
+    )
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER on_auth_user_confirmed
+  AFTER UPDATE ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_user_confirmed();
 
 -- Keep updated_at in sync on every profile update
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
