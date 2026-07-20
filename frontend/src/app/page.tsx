@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Activity, ArrowRight } from "lucide-react";
+import { AuthHashRedirect } from "@/components/auth/auth-hash-redirect";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import {
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
+      <AuthHashRedirect />
       <main className="flex w-full max-w-3xl flex-col items-center gap-10 text-center">
         <div className="flex flex-col items-center gap-4">
           <Badge className="bg-primary-50 text-primary-700 hover:bg-primary-50">

@@ -1,23 +1,25 @@
 import type { NextFunction, Request, Response } from "express";
 import { supabaseAdmin } from "../config/supabase.js";
+import { refreshUserSession } from "../services/authService.js";
 import type { AuthUser } from "../types/auth.js";
+import { clearAuthCookies, setAuthCookies } from "../utils/authCookies.js";
+import { extractAccessToken, extractRefreshToken } from "../utils/authToken.js";
+import { sendError } from "../utils/responseHelpers.js";
 
-function extractBearerToken(authorizationHeader: string | undefined): string | null {
-  if (!authorizationHeader?.startsWith("Bearer ")) {
+async function verifyAccessToken(token: string): Promise<AuthUser | null> {
+  const {
+    data: { user },
+    error,
+  } = await supabaseAdmin.auth.getUser(token);
+
+  if (error || !user) {
     return null;
   }
 
-  const token = authorizationHeader.slice("Bearer ".length).trim();
-  return token.length > 0 ? token : null;
-}
-
-function sendUnauthorized(res: Response, message: string) {
-  res.status(401).json({
-    error: {
-      message,
-      code: "UNAUTHORIZED",
-    },
-  });
+  return {
+    id: user.id,
+    email: user.email ?? "",
+  };
 }
 
 export async function requireAuth(
@@ -25,28 +27,36 @@ export async function requireAuth(
   res: Response,
   next: NextFunction,
 ): Promise<void> {
-  const token = extractBearerToken(req.headers.authorization);
+  const accessToken = extractAccessToken(req);
 
-  if (!token) {
-    sendUnauthorized(res, "Missing authorization token");
+  if (accessToken) {
+    const user = await verifyAccessToken(accessToken);
+    if (user) {
+      req.user = user;
+      next();
+      return;
+    }
+  }
+
+  const refreshToken = extractRefreshToken(req);
+
+  if (refreshToken) {
+    const refreshed = await refreshUserSession(refreshToken);
+
+    if (refreshed) {
+      setAuthCookies(res, refreshed.session);
+      req.user = refreshed.user;
+      next();
+      return;
+    }
+  }
+
+  clearAuthCookies(res);
+
+  if (!accessToken && !refreshToken) {
+    sendError(res, 401, "Missing authorization token", "UNAUTHORIZED");
     return;
   }
 
-  const {
-    data: { user },
-    error,
-  } = await supabaseAdmin.auth.getUser(token);
-
-  if (error || !user) {
-    sendUnauthorized(res, "Invalid or expired token");
-    return;
-  }
-
-  const authUser: AuthUser = {
-    id: user.id,
-    email: user.email ?? "",
-  };
-
-  req.user = authUser;
-  next();
+  sendError(res, 401, "Invalid or expired token", "UNAUTHORIZED");
 }

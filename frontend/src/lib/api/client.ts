@@ -1,9 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public code?: string,
     public body?: unknown,
   ) {
     super(message);
@@ -11,17 +12,33 @@ export class ApiError extends Error {
   }
 }
 
+type ApiErrorBody = {
+  error?: {
+    message?: string;
+    code?: string;
+  };
+};
+
+function resolveUrl(path: string): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_URL}${normalizedPath}`;
+}
+
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit & { token?: string } = {},
+  options: RequestInit = {},
 ): Promise<T> {
-  const { token, headers, ...rest } = options;
+  const { headers, ...rest } = options;
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(resolveUrl(path), {
     ...rest,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
   });
@@ -33,7 +50,13 @@ export async function apiFetch<T>(
     } catch {
       body = undefined;
     }
-    throw new ApiError(`API request failed: ${response.statusText}`, response.status, body);
+
+    const errorBody = body as ApiErrorBody | undefined;
+    const message =
+      errorBody?.error?.message ?? `API request failed: ${response.statusText}`;
+    const code = errorBody?.error?.code;
+
+    throw new ApiError(message, response.status, code, body);
   }
 
   if (response.status === 204) {

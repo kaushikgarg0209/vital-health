@@ -6,6 +6,7 @@ import {
   MessageSquare,
   Users,
 } from "lucide-react";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Activity },
@@ -43,8 +44,9 @@ export default function AppLayout({
         </nav>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center border-b border-neutral-100 bg-white px-6">
-          <p className="text-sm text-neutral-400">Authenticated app shell — Phase 1+</p>
+        <header className="flex h-14 items-center justify-between border-b border-neutral-100 bg-white px-6">
+          <p className="text-sm text-neutral-400">Your personal health advocate</p>
+          <LogoutButton />
         </header>
         <main className="flex-1 bg-neutral-25 p-6">{children}</main>
       </div>
