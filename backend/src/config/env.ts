@@ -11,6 +11,7 @@ const envSchema = z
     SUPABASE_URL: z.string().url(),
     SUPABASE_ANON_KEY: z.string().min(1),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+    FRONTEND_URL: z.string().url().optional(),
   })
   .transform((data) => {
     const baseUrl =
@@ -21,6 +22,7 @@ const envSchema = z
       ...data,
       BASE_URL: baseUrl,
       API_PATH: apiPath,
+      FRONTEND_URL: data.FRONTEND_URL ?? "http://localhost:3000",
     };
   });
 
