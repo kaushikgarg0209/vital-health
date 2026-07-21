@@ -14,7 +14,7 @@ export function LogoutButton() {
 
     try {
       await logout();
-      router.push("/login");
+      router.push("/");
       router.refresh();
     } finally {
       setIsSubmitting(false);

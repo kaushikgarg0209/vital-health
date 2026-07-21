@@ -3,17 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { Activity, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Mail, XCircle } from "lucide-react";
 import type { ConfirmEmailResult } from "@/lib/auth/confirm-email";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { AuthFormPanel } from "@/components/auth/auth-form-panel";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 type ConfirmState =
   | { status: "verifying" }
@@ -173,126 +167,137 @@ export function ConfirmEmailForm({ initialState }: ConfirmEmailFormProps) {
 
   if (state.status === "verifying") {
     return (
-      <Card className="border-neutral-100 shadow-none">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-lg bg-primary-100 text-primary-600">
-            <Loader2 className="size-5 animate-spin" />
+      <AuthFormPanel
+        title="Verifying your email"
+        description="Please wait while we confirm your email address."
+      >
+        <div className="flex flex-col items-center gap-4 py-6 text-center">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-600">
+            <Loader2 className="size-6 animate-spin" />
           </div>
-          <CardTitle className="text-2xl font-semibold text-neutral-700">
-            Verifying your email
-          </CardTitle>
-          <CardDescription className="text-neutral-400">
-            Please wait while we confirm your address...
-          </CardDescription>
-        </CardHeader>
-      </Card>
+          <p className="text-sm text-neutral-500">This usually takes just a moment.</p>
+        </div>
+      </AuthFormPanel>
     );
   }
 
   if (state.status === "error") {
     return (
-      <Card className="border-neutral-100 shadow-none">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-lg bg-red-100 text-red-600">
-            <XCircle className="size-5" />
+      <AuthFormPanel
+        title="Confirmation failed"
+        description="We couldn't verify your email address."
+      >
+        <div className="space-y-6">
+          <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-4">
+            <XCircle className="mt-0.5 size-5 shrink-0 text-red-600" />
+            <p className="text-sm leading-relaxed text-red-700">{state.message}</p>
           </div>
-          <CardTitle className="text-2xl font-semibold text-neutral-700">
-            Confirmation failed
-          </CardTitle>
-          <CardDescription className="text-neutral-400">
-            {state.message}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Link
-            href="/register"
-            className={buttonVariants({
-              className: "w-full bg-primary-600 text-white hover:bg-primary-700",
-            })}
-          >
-            Create a new account
-          </Link>
-          <Link
-            href="/login"
-            className={buttonVariants({ variant: "outline", className: "w-full" })}
-          >
-            Back to sign in
-          </Link>
-        </CardContent>
-      </Card>
+          <div className="space-y-3">
+            <Link
+              href="/register"
+              className={buttonVariants({
+                size: "lg",
+                className: "h-11 w-full bg-primary-600 hover:bg-primary-700",
+              })}
+            >
+              Create a new account
+            </Link>
+            <Link
+              href="/login"
+              className={buttonVariants({
+                variant: "outline",
+                size: "lg",
+                className: "h-11 w-full",
+              })}
+            >
+              Back to sign in
+            </Link>
+          </div>
+        </div>
+      </AuthFormPanel>
     );
   }
 
   if (state.status === "success") {
     return (
-      <Card className="border-neutral-100 shadow-none">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
-            <CheckCircle2 className="size-5" />
+      <AuthFormPanel
+        title="Email confirmed"
+        description="Your email address has been verified. You're ready to sign in."
+      >
+        <div className="space-y-6">
+          <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4">
+            <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+            <p className="text-sm leading-relaxed text-emerald-800">
+              Your account is verified. Sign in to start using Vital.
+            </p>
           </div>
-          <CardTitle className="text-2xl font-semibold text-neutral-700">
-            Email confirmed
-          </CardTitle>
-          <CardDescription className="text-neutral-400">
-            Your email address has been verified. You can now sign in to Vital.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Link
-            href="/login"
-            className={buttonVariants({
-              className: "w-full bg-primary-600 text-white hover:bg-primary-700",
-            })}
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/"
-            className={buttonVariants({ variant: "outline", className: "w-full" })}
-          >
-            Go to site
-          </Link>
-        </CardContent>
-      </Card>
+          <div className="space-y-3">
+            <Link
+              href="/login"
+              className={buttonVariants({
+                size: "lg",
+                className: "h-11 w-full bg-primary-600 hover:bg-primary-700",
+              })}
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/"
+              className={buttonVariants({
+                variant: "outline",
+                size: "lg",
+                className: "h-11 w-full",
+              })}
+            >
+              Go to site
+            </Link>
+          </div>
+        </div>
+      </AuthFormPanel>
     );
   }
 
   return (
-    <Card className="border-neutral-100 shadow-none">
-      <CardHeader className="text-center">
-        <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-lg bg-primary-600 text-white">
-          <Activity className="size-5" />
+    <AuthFormPanel
+      title="Confirm your email"
+      description="We sent a confirmation link to your inbox. Open it to verify your address."
+    >
+      <div className="space-y-6">
+        <div className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4">
+          <Mail className="mt-0.5 size-5 shrink-0 text-primary-600" />
+          <p className="text-sm leading-relaxed text-neutral-600">
+            After confirming, you&apos;ll be redirected here automatically. You can
+            also sign in once verification is complete.
+          </p>
         </div>
-        <CardTitle className="text-2xl font-semibold text-neutral-700">
-          Confirm your email
-        </CardTitle>
-        <CardDescription className="text-neutral-400">
-          We sent a confirmation link to your inbox. Open that link to verify
-          your address — you will be brought back here once it succeeds.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <Link
-          href="/login"
-          className={buttonVariants({
-            className: "w-full bg-primary-600 text-white hover:bg-primary-700",
-          })}
-        >
-          Already confirmed? Sign in
-        </Link>
-        <Link
-          href="/"
-          className={buttonVariants({ variant: "outline", className: "w-full" })}
-        >
-          Go to site
-        </Link>
-        <Link
-          href="/register"
-          className={buttonVariants({ variant: "ghost", className: "w-full" })}
-        >
-          Back to registration
-        </Link>
-      </CardContent>
-    </Card>
+        <div className="space-y-3">
+          <Link
+            href="/login"
+            className={buttonVariants({
+              size: "lg",
+              className: "h-11 w-full bg-primary-600 hover:bg-primary-700",
+            })}
+          >
+            Already confirmed? Sign in
+          </Link>
+          <Link
+            href="/"
+            className={buttonVariants({
+              variant: "outline",
+              size: "lg",
+              className: "h-11 w-full",
+            })}
+          >
+            Go to site
+          </Link>
+          <Link
+            href="/register"
+            className={buttonVariants({ variant: "ghost", className: "h-11 w-full" })}
+          >
+            Back to registration
+          </Link>
+        </div>
+      </div>
+    </AuthFormPanel>
   );
 }

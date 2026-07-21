@@ -1,0 +1,35 @@
+import { cookies } from "next/headers";
+import type { AuthUser } from "@/types/auth";
+
+const API_BASE = process.env.API_PROXY_URL ?? "http://localhost:3001";
+
+export async function getServerSession(): Promise<AuthUser | null> {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join("; ");
+
+  if (!cookieHeader) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/v1/auth/session`, {
+      headers: { cookie: cookieHeader },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as {
+      data?: { user?: AuthUser };
+    };
+
+    return payload.data?.user ?? null;
+  } catch {
+    return null;
+  }
+}

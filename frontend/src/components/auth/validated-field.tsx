@@ -32,7 +32,7 @@ export function ValidatedField({
 }: ValidatedFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-sm font-medium text-neutral-700">{label}</Label>
       <Input
         id={id}
         type={type}
@@ -42,7 +42,10 @@ export function ValidatedField({
         onChange={(event) => onValueChange(event.target.value)}
         onBlur={onBlur}
         aria-invalid={Boolean(error)}
-        className={cn(error && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20")}
+        className={cn(
+          "h-10 w-full min-w-0 rounded-xl border border-input bg-white px-3.5 py-2 text-base transition-colors outline-none md:text-sm",
+          error && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20",
+        )}
       />
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </div>
@@ -65,7 +68,7 @@ export function PasswordField({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-sm font-medium text-neutral-700">{label}</Label>
       <div className="relative">
         <Input
           id={id}
@@ -77,7 +80,7 @@ export function PasswordField({
           onBlur={onBlur}
           aria-invalid={Boolean(error)}
           className={cn(
-            "pr-10",
+            "h-10 rounded-xl bg-white pr-10",
             error &&
               "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20",
           )}
