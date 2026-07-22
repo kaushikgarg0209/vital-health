@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { logout } from "@/lib/api/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -120,6 +120,15 @@ export function UserAccountMenu({
             >
               <LayoutDashboard className="size-4 text-neutral-400" />
               Dashboard
+            </Link>
+            <Link
+              href="/settings/profile"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
+            >
+              <Settings className="size-4 text-neutral-400" />
+              Profile settings
             </Link>
             <button
               type="button"

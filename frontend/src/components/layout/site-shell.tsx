@@ -1,4 +1,4 @@
-import { getServerSession } from "@/lib/auth/server-session";
+import { getServerUser } from "@/lib/auth/server-session";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 
@@ -13,7 +13,7 @@ export async function SiteShell({
   headerVariant = "default",
   hideFooter = false,
 }: SiteShellProps) {
-  const user = await getServerSession();
+  const user = await getServerUser();
 
   return (
     <div className="flex min-h-full flex-1 flex-col">

@@ -53,7 +53,7 @@ export async function registerUser(input: RegisterInput): Promise<{ userId: stri
     options: {
       emailRedirectTo: `${env.FRONTEND_URL}/confirm?callback=1`,
       data: {
-        full_name: input.full_name,
+        full_name: input.fullName,
       },
     },
   });

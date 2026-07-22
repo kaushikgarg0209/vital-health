@@ -25,10 +25,10 @@ export function RegisterForm() {
     markTouched,
     markSubmitAttempted,
   } = useValidatedForm(registerFormSchema, {
-    full_name: "",
+    fullName: "",
     email: "",
     password: "",
-    confirm_password: "",
+    confirmPassword: "",
   });
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -101,10 +101,10 @@ export function RegisterForm() {
           label="Full name"
           autoComplete="name"
           placeholder="Jane Doe"
-          value={values.full_name}
-          error={visibleErrors.full_name}
-          onValueChange={(value) => setField("full_name", value)}
-          onBlur={() => markTouched("full_name")}
+          value={values.fullName}
+          error={visibleErrors.fullName}
+          onValueChange={(value) => setField("fullName", value)}
+          onBlur={() => markTouched("fullName")}
         />
         <ValidatedField
           id="email"
@@ -127,13 +127,13 @@ export function RegisterForm() {
           onBlur={() => markTouched("password")}
         />
         <PasswordField
-          id="confirm_password"
+          id="confirmPassword"
           label="Confirm password"
           autoComplete="new-password"
-          value={values.confirm_password}
-          error={visibleErrors.confirm_password}
-          onValueChange={(value) => setField("confirm_password", value)}
-          onBlur={() => markTouched("confirm_password")}
+          value={values.confirmPassword}
+          error={visibleErrors.confirmPassword}
+          onValueChange={(value) => setField("confirmPassword", value)}
+          onBlur={() => markTouched("confirmPassword")}
         />
         <Button
           type="submit"

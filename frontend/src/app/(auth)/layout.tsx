@@ -1,4 +1,4 @@
-import { getServerSession } from "@/lib/auth/server-session";
+import { getServerUser } from "@/lib/auth/server-session";
 import { AuthBrandPanel } from "@/components/layout/auth-brand-panel";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -8,7 +8,7 @@ export default async function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getServerSession();
+  const user = await getServerUser();
 
   return (
     <div className="flex min-h-full flex-1 flex-col">

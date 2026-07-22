@@ -8,7 +8,10 @@ const PROTECTED_PREFIXES = [
   "/advocate",
   "/family",
   "/settings",
+  "/onboarding",
 ];
+
+const ONBOARDING_ROUTE = "/onboarding";
 
 function isAuthRoute(pathname: string): boolean {
   return AUTH_ROUTES.includes(pathname);
@@ -20,7 +23,12 @@ function isProtectedRoute(pathname: string): boolean {
   );
 }
 
-async function fetchSession(request: NextRequest) {
+type SessionPayload = {
+  user?: { id: string; email: string };
+  profile?: { hasCompletedSetup?: boolean } | null;
+};
+
+async function fetchSession(request: NextRequest): Promise<SessionPayload | null> {
   const sessionUrl = new URL("/api/v1/auth/session", request.url);
 
   try {
@@ -36,10 +44,10 @@ async function fetchSession(request: NextRequest) {
     }
 
     const payload = (await response.json()) as {
-      data?: { user?: { id: string; email: string } };
+      data?: SessionPayload;
     };
 
-    return payload.data?.user ?? null;
+    return payload.data ?? null;
   } catch {
     return null;
   }
@@ -52,7 +60,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const user = await fetchSession(request);
+  const session = await fetchSession(request);
+  const user = session?.user ?? null;
+  const hasCompletedSetup = session?.profile?.hasCompletedSetup ?? false;
 
   if (isProtectedRoute(pathname) && !user) {
     const loginUrl = new URL("/login", request.url);
@@ -60,8 +70,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthRoute(pathname) && user) {
+  if (user && pathname === ONBOARDING_ROUTE && hasCompletedSetup) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  if (
+    user &&
+    isProtectedRoute(pathname) &&
+    pathname !== ONBOARDING_ROUTE &&
+    !hasCompletedSetup
+  ) {
+    return NextResponse.redirect(new URL(ONBOARDING_ROUTE, request.url));
+  }
+
+  if (isAuthRoute(pathname) && user) {
+    const destination = hasCompletedSetup ? "/dashboard" : ONBOARDING_ROUTE;
+    return NextResponse.redirect(new URL(destination, request.url));
   }
 
   return NextResponse.next();
@@ -77,5 +101,6 @@ export const config = {
     "/advocate/:path*",
     "/family/:path*",
     "/settings/:path*",
+    "/onboarding/:path*",
   ],
 };

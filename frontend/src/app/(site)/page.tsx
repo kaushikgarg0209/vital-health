@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { AuthHashRedirect } from "@/components/auth/auth-hash-redirect";
 import { MarketingCtaButtons } from "@/components/layout/marketing-cta-buttons";
-import { getServerSession } from "@/lib/auth/server-session";
+import { getServerUser } from "@/lib/auth/server-session";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -64,7 +64,7 @@ const steps = [
 ];
 
 export default async function Home() {
-  const user = await getServerSession();
+  const user = await getServerUser();
 
   return (
     <>

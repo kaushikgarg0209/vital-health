@@ -1,19 +1,9 @@
 import { cookies } from "next/headers";
-import type { AuthUser } from "@/types/auth";
+import type { AuthUser, SessionResponse } from "@/types/auth";
 
 const API_BASE = process.env.API_PROXY_URL ?? "http://localhost:3001";
 
-export async function getServerSession(): Promise<AuthUser | null> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((cookie) => `${cookie.name}=${cookie.value}`)
-    .join("; ");
-
-  if (!cookieHeader) {
-    return null;
-  }
-
+async function fetchSession(cookieHeader: string): Promise<SessionResponse | null> {
   try {
     const response = await fetch(`${API_BASE}/api/v1/auth/session`, {
       headers: { cookie: cookieHeader },
@@ -25,11 +15,30 @@ export async function getServerSession(): Promise<AuthUser | null> {
     }
 
     const payload = (await response.json()) as {
-      data?: { user?: AuthUser };
+      data?: SessionResponse;
     };
 
-    return payload.data?.user ?? null;
+    return payload.data ?? null;
   } catch {
     return null;
   }
+}
+
+export async function getServerSession(): Promise<SessionResponse | null> {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join("; ");
+
+  if (!cookieHeader) {
+    return null;
+  }
+
+  return fetchSession(cookieHeader);
+}
+
+export async function getServerUser(): Promise<AuthUser | null> {
+  const session = await getServerSession();
+  return session?.user ?? null;
 }

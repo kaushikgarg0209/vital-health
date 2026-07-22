@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { login } from "@/lib/api/auth";
+import { login, getSession } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { loginSchema } from "@/lib/validation/auth";
 import { AuthFormPanel } from "@/components/auth/auth-form-panel";
@@ -42,7 +42,9 @@ export function LoginForm() {
 
     try {
       await login(parsed.data);
-      const nextPath = searchParams.get("next") ?? "/dashboard";
+      const session = await getSession();
+      const defaultPath = session.profile?.hasCompletedSetup ? "/dashboard" : "/onboarding";
+      const nextPath = searchParams.get("next") ?? defaultPath;
       window.location.assign(nextPath);
     } catch (err) {
       if (err instanceof ApiError) {

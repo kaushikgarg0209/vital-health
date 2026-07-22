@@ -7,14 +7,14 @@ export const loginSchema = z.object({
 
 export const registerFormSchema = z
   .object({
-    full_name: z.string().trim().min(1, "Full name is required"),
+    fullName: z.string().trim().min(1, "Full name is required"),
     email: z.email("Enter a valid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
-    confirm_password: z.string().min(1, "Please confirm your password"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
   })
-  .refine((data) => data.password === data.confirm_password, {
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
-    path: ["confirm_password"],
+    path: ["confirmPassword"],
   });
 
 /** @deprecated Use registerFormSchema for forms */
@@ -24,7 +24,7 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerFormSchema>;
 
 export function toRegisterInput(values: RegisterFormValues) {
-  const { confirm_password: _confirmPassword, ...input } = values;
+  const { confirmPassword: _confirmPassword, ...input } = values;
   return input;
 }
 

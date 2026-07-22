@@ -11,5 +11,17 @@ export type LoginInput = {
 export type RegisterInput = {
   email: string;
   password: string;
-  full_name: string;
+  fullName: string;
+};
+
+export type ProfileSessionSummary = {
+  fullName: string;
+  dateOfBirth: string | null;
+  biologicalSex: "male" | "female" | "other" | null;
+  hasCompletedSetup: boolean;
+};
+
+export type SessionResponse = {
+  user: AuthUser;
+  profile: ProfileSessionSummary | null;
 };

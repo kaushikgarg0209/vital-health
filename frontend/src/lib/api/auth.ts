@@ -2,6 +2,7 @@ import type {
   AuthUser,
   LoginInput,
   RegisterInput,
+  SessionResponse,
 } from "@/types/auth";
 import { apiFetch } from "./client";
 
@@ -39,10 +40,10 @@ export async function logout(): Promise<void> {
   });
 }
 
-export async function getSession(): Promise<AuthUser> {
-  const response = await apiFetch<ApiDataResponse<{ user: AuthUser }>>(
+export async function getSession(): Promise<SessionResponse> {
+  const response = await apiFetch<ApiDataResponse<SessionResponse>>(
     "/api/v1/auth/session",
   );
 
-  return response.data.user;
+  return response.data;
 }
