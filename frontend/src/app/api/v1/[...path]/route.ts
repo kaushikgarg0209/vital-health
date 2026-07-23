@@ -43,6 +43,11 @@ async function proxyRequest(
     headers.set("content-type", contentType);
   }
 
+  const contentLength = request.headers.get("content-length");
+  if (contentLength) {
+    headers.set("content-length", contentLength);
+  }
+
   const init: RequestInit = {
     method: request.method,
     headers,
@@ -50,7 +55,11 @@ async function proxyRequest(
   };
 
   if (request.method !== "GET" && request.method !== "HEAD") {
-    init.body = await request.text();
+    if (contentType?.includes("multipart/form-data")) {
+      init.body = await request.arrayBuffer();
+    } else {
+      init.body = await request.text();
+    }
   }
 
   const backendResponse = await fetch(targetUrl.toString(), init);

@@ -8,6 +8,20 @@ export function sendSuccess<T>(
   res.status(status).json({ data });
 }
 
+export function sendPaginatedSuccess<T>(
+  res: Response,
+  status: number,
+  data: T[],
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    hasMore: boolean;
+  },
+): void {
+  res.status(status).json({ data, meta });
+}
+
 export function sendError(
   res: Response,
   status: number,

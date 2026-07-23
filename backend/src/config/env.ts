@@ -12,6 +12,8 @@ const envSchema = z
     SUPABASE_ANON_KEY: z.string().min(1),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     FRONTEND_URL: z.string().url().optional(),
+    REDIS_URL: z.string().min(1).default("redis://localhost:6379"),
+    SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
   })
   .transform((data) => {
     const baseUrl =

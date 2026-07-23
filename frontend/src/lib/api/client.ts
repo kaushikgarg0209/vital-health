@@ -28,21 +28,7 @@ function resolveUrl(path: string): string {
   return `${API_URL}${normalizedPath}`;
 }
 
-export async function apiFetch<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const { headers, ...rest } = options;
-
-  const response = await fetch(resolveUrl(path), {
-    ...rest,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-    },
-  });
-
+async function parseResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let body: unknown;
     try {
@@ -64,6 +50,34 @@ export async function apiFetch<T>(
   }
 
   return response.json() as Promise<T>;
+}
+
+export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const { headers, ...rest } = options;
+
+  const response = await fetch(resolveUrl(path), {
+    ...rest,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+    },
+  });
+
+  return parseResponse<T>(response);
+}
+
+export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  const response = await fetch(resolveUrl(path), {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+
+  return parseResponse<T>(response);
 }
 
 export { API_URL };
