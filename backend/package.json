@@ -8,13 +8,16 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "worker": "tsx workers/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:gemini": "tsx scripts/test-gemini.ts",
+    "test:processing": "tsx scripts/test-document-processing.ts",
+    "test": "npm run test:gemini && npm run test:processing"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/genai": "^2.13.0",
     "@supabase/supabase-js": "^2.110.6",
     "bullmq": "^5.81.0",
     "cookie-parser": "^1.4.7",

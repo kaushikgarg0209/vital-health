@@ -227,6 +227,65 @@ export async function updateDocumentProcessingStatus(
   }
 }
 
+export type DocumentExtractionMetadata = {
+  documentType: Document["document_type"];
+  extractionConfidence: number;
+  documentDate?: string | null;
+  institutionName?: string | null;
+  doctorName?: string | null;
+  notes?: string | null;
+};
+
+export async function getDocumentForProcessing(documentId: string): Promise<Document | null> {
+  const { data, error } = await supabaseAdmin
+    .from("documents")
+    .select("*")
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (error) {
+    throw new DocumentError(error.message, 500, "INTERNAL_ERROR");
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return mapDocument(data as DocumentRow);
+}
+
+export async function updateDocumentAfterExtraction(
+  documentId: string,
+  metadata: DocumentExtractionMetadata,
+): Promise<void> {
+  const payload: Record<string, unknown> = {
+    document_type: metadata.documentType,
+    extraction_confidence: metadata.extractionConfidence,
+  };
+
+  if (metadata.documentDate !== undefined) {
+    payload.document_date = metadata.documentDate;
+  }
+
+  if (metadata.institutionName !== undefined) {
+    payload.institution_name = metadata.institutionName;
+  }
+
+  if (metadata.doctorName !== undefined) {
+    payload.doctor_name = metadata.doctorName;
+  }
+
+  if (metadata.notes !== undefined) {
+    payload.notes = metadata.notes;
+  }
+
+  const { error } = await supabaseAdmin.from("documents").update(payload).eq("id", documentId);
+
+  if (error) {
+    throw new DocumentError(error.message, 500, "INTERNAL_ERROR");
+  }
+}
+
 export async function deleteDocument(userId: string, documentId: string): Promise<Document> {
   const existing = await getDocumentById(userId, documentId);
 

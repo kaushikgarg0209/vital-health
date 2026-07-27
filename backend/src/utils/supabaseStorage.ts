@@ -71,3 +71,15 @@ export async function deleteFile(storagePath: string): Promise<void> {
     throw error;
   }
 }
+
+export async function downloadFile(storagePath: string): Promise<Buffer> {
+  const { data, error } = await supabaseAdmin.storage
+    .from(HEALTH_DOCUMENTS_BUCKET)
+    .download(storagePath);
+
+  if (error || !data) {
+    throw error ?? new Error(`Failed to download file: ${storagePath}`);
+  }
+
+  return Buffer.from(await data.arrayBuffer());
+}

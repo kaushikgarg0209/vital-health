@@ -5,23 +5,18 @@ import {
   DOCUMENT_QUEUE_NAME,
   type DocumentJobPayload,
 } from "../src/queues/documentQueue.js";
+import { processDocument } from "../src/services/documentProcessingService.js";
 import { updateDocumentProcessingStatus } from "../src/services/documentService.js";
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function createDocumentWorker(): Worker<DocumentJobPayload> {
   const worker = new Worker<DocumentJobPayload>(
     DOCUMENT_QUEUE_NAME,
     async (job) => {
-      const { documentId } = job.data;
+      const { documentId, userId } = job.data;
 
-      console.log(`Processing document ${documentId}`);
+      console.log(`Processing document ${documentId} (job ${job.id})`);
 
-      await updateDocumentProcessingStatus(documentId, "processing");
-      await sleep(2000);
-      await updateDocumentProcessingStatus(documentId, "completed");
-
-      console.log(`Document ${documentId} processed`);
+      await processDocument(documentId, userId);
     },
     {
       connection: redisConnection,
@@ -31,12 +26,23 @@ export function createDocumentWorker(): Worker<DocumentJobPayload> {
   worker.on("failed", async (job, error) => {
     console.error(`Document job ${job?.id} failed:`, error);
 
-    if (job?.data.documentId) {
-      try {
-        await updateDocumentProcessingStatus(job.data.documentId, "failed");
-      } catch (updateError) {
-        console.error("Failed to mark document as failed:", updateError);
-      }
+    if (!job?.data.documentId) {
+      return;
+    }
+
+    const maxAttempts = job.opts.attempts ?? 1;
+
+    if (job.attemptsMade < maxAttempts) {
+      console.log(
+        `Document ${job.data.documentId} will retry (${job.attemptsMade}/${maxAttempts})`,
+      );
+      return;
+    }
+
+    try {
+      await updateDocumentProcessingStatus(job.data.documentId, "failed");
+    } catch (updateError) {
+      console.error("Failed to mark document as failed:", updateError);
     }
   });
 

@@ -14,6 +14,9 @@ const envSchema = z
     FRONTEND_URL: z.string().url().optional(),
     REDIS_URL: z.string().min(1).default("redis://localhost:6379"),
     SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+    GEMINI_API_KEY: z.string().min(1),
+    GEMINI_CLASSIFICATION_MODEL: z.string().min(1).default("gemini-3.1-flash-lite"),
+    GEMINI_EXTRACTION_MODEL: z.string().min(1).default("gemini-3.1-flash-lite"),
   })
   .transform((data) => {
     const baseUrl =
