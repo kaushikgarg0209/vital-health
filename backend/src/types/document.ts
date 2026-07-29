@@ -1,3 +1,5 @@
+import type { DocumentExtractedData } from "./documentExtraction.js";
+
 export type ProcessingStatus = "pending" | "processing" | "completed" | "failed";
 
 export type DocumentType =
@@ -74,6 +76,7 @@ export type DocumentResponse = {
 
 export type DocumentDetailResponse = DocumentResponse & {
   signedUrl?: string;
+  extractedData?: DocumentExtractedData | null;
 };
 
 function toNumber(value: number | string | null | undefined): number | null {

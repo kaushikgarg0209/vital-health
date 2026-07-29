@@ -7,6 +7,8 @@ import { Loader2, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppBreadcrumbs } from "@/components/layout/app-breadcrumbs";
 import { DocumentViewer } from "@/components/health/document-viewer";
+import { DocumentExtractedDataPanel } from "@/components/health/document-extracted-data-panel";
+import { ExtractionConfidenceBadge } from "@/components/health/extraction-confidence-badge";
 import { ProcessingStatusBadge } from "@/components/health/processing-status-badge";
 import { useDocument } from "@/hooks/useDocument";
 import { deleteDocument } from "@/lib/api/documents";
@@ -132,7 +134,13 @@ export function DocumentDetailView({ documentId }: DocumentDetailViewProps) {
               {formatFileSize(document.fileSizeBytes)}
             </p>
           </div>
-          <ProcessingStatusBadge status={document.processingStatus} />
+          <div className="flex flex-wrap items-center gap-2">
+            <ProcessingStatusBadge status={document.processingStatus} />
+            {document.processingStatus === "completed" &&
+            document.extractionConfidence != null ? (
+              <ExtractionConfidenceBadge confidence={document.extractionConfidence} />
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -250,6 +258,15 @@ export function DocumentDetailView({ documentId }: DocumentDetailViewProps) {
           </Card>
         </div>
       </div>
+
+      <DocumentExtractedDataPanel
+        processingStatus={document.processingStatus}
+        documentType={document.documentType}
+        extractedData={document.extractedData}
+        notes={document.notes}
+        doctorName={document.doctorName}
+        documentDate={document.documentDate}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { parseDocument } from "./ai/documentParser.js";
+import { addEmbeddingJob } from "../queues/producers.js";
 import {
   DocumentError,
   getDocumentForProcessing,
@@ -44,6 +45,12 @@ export async function processDocument(documentId: string, userId: string): Promi
 
     await persistExtraction(document, classification, extraction);
     await updateDocumentProcessingStatus(documentId, "completed");
+
+    try {
+      await addEmbeddingJob({ documentId, userId });
+    } catch (queueError) {
+      console.error(`Failed to enqueue embedding job for document ${documentId}:`, queueError);
+    }
 
     console.log(
       `Document ${documentId} processed as ${classification.type} (confidence ${classification.confidence})`,

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import type { AuthUser } from "@/types/auth";
+import { SearchBar } from "@/components/health/search-bar";
 import { AppSidebarNav } from "./app-sidebar-nav";
 import { UserAccountMenu } from "./user-account-menu";
 import { VitalLogo } from "./vital-logo";
@@ -53,10 +54,24 @@ export function AppHeader({ user }: AppHeaderProps) {
             <VitalLogo href="/dashboard" iconClassName="size-8 rounded-lg" labelClassName="text-base" />
           </div>
 
-          <p className="hidden text-sm text-neutral-500 md:block">
-            Your personal health advocate
-          </p>
+          {!user ? (
+            <p className="hidden text-sm text-neutral-500 md:block">
+              Your personal health advocate
+            </p>
+          ) : null}
         </div>
+
+        {user ? (
+          <>
+            <div className="hidden min-w-0 flex-1 justify-center md:flex">
+              <SearchBar variant="default" className="w-full max-w-lg" />
+            </div>
+
+            <div className="md:hidden">
+              <SearchBar variant="compact" />
+            </div>
+          </>
+        ) : null}
 
         {user ? <UserAccountMenu user={user} /> : null}
       </header>

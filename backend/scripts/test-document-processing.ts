@@ -7,8 +7,18 @@ import { supabaseAdmin } from "../src/config/supabase.js";
 import { createDocument } from "../src/services/documentService.js";
 import { processDocument } from "../src/services/documentProcessingService.js";
 import { uploadFile } from "../src/utils/supabaseStorage.js";
+import { redisConnection } from "../src/config/redis.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+async function shutdown(exitCode: number): Promise<void> {
+  try {
+    await redisConnection.quit();
+  } catch {
+    // Redis may not have connected if the test failed early.
+  }
+  process.exit(exitCode);
+}
 const samplePdfPath = path.resolve(__dirname, "../testdata/sample-lab-report.pdf");
 
 async function getOrCreateTestUserId(): Promise<string> {
@@ -111,9 +121,10 @@ async function main(): Promise<void> {
   }
 
   console.log("\nDocument worker pipeline verified successfully.");
+  await shutdown(0);
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
   console.error("Document processing E2E test failed:", error);
-  process.exit(1);
+  await shutdown(1);
 });

@@ -1,3 +1,5 @@
+import type { DocumentExtractedData } from "@/types/extraction";
+
 export type ProcessingStatus = "pending" | "processing" | "completed" | "failed";
 
 export type DocumentType =
@@ -31,6 +33,7 @@ export type Document = {
 
 export type DocumentDetail = Document & {
   signedUrl: string;
+  extractedData: DocumentExtractedData | null;
 };
 
 export type UploadDocumentResponse = {
@@ -65,6 +68,8 @@ export type DocumentSearchResult = {
   processingStatus: ProcessingStatus;
   documentDate: string | null;
   excerpt: string;
+  score: number | null;
+  matchType: "semantic" | "keyword";
 };
 
 export const ALLOWED_UPLOAD_MIME_TYPES = [

@@ -5,31 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Document } from "@/types/document";
 import { formatFileSize } from "@/types/document";
+import { formatDocumentDate, getDocumentTypeLabel } from "@/lib/document-labels";
 import { cn } from "@/lib/utils";
-
-const DOCUMENT_TYPE_LABELS: Record<NonNullable<Document["documentType"]>, string> = {
-  lab_report: "Lab report",
-  prescription: "Prescription",
-  discharge_summary: "Discharge summary",
-  imaging_report: "Imaging report",
-  medical_bill: "Medical bill",
-  insurance_eob: "Insurance EOB",
-  insurance_policy: "Insurance policy",
-  vaccination_record: "Vaccination record",
-  other: "Other",
-};
-
-function formatDocumentDate(date: string | null): string {
-  if (!date) {
-    return "Date unknown";
-  }
-
-  return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 type DocumentCardProps = {
   document: Document;
@@ -37,9 +14,7 @@ type DocumentCardProps = {
 };
 
 export function DocumentCard({ document, className }: DocumentCardProps) {
-  const typeLabel = document.documentType
-    ? DOCUMENT_TYPE_LABELS[document.documentType]
-    : null;
+  const typeLabel = getDocumentTypeLabel(document.documentType);
 
   return (
     <Link href={`/records/${document.id}`} className={cn("block", className)}>

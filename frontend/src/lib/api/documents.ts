@@ -79,7 +79,10 @@ export async function getDocument(documentId: string): Promise<DocumentDetail> {
     `/api/v1/documents/${documentId}`,
   );
 
-  return response.data;
+  return {
+    ...response.data,
+    extractedData: response.data.extractedData ?? null,
+  };
 }
 
 export async function deleteDocument(documentId: string): Promise<void> {

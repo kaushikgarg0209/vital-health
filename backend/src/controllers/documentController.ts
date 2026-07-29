@@ -12,9 +12,10 @@ import {
   deleteDocument,
   getDocumentById,
   listDocuments,
-  searchDocuments,
   updateDocument,
 } from "../services/documentService.js";
+import { searchDocumentsHybrid } from "../services/documentSearchService.js";
+import { getExtractedDataForDocument } from "../services/documentExtractionReadService.js";
 import { toDocumentResponse } from "../types/document.js";
 import { deleteFile, getSignedUrl, uploadFile } from "../utils/supabaseStorage.js";
 import { sendError, sendPaginatedSuccess, sendSuccess } from "../utils/responseHelpers.js";
@@ -116,20 +117,9 @@ export async function listDocumentsHandler(req: Request, res: Response): Promise
 export async function searchDocumentsHandler(req: Request, res: Response): Promise<void> {
   try {
     const query = req.validatedQuery as SearchDocumentsQuery;
-    const documents = await searchDocuments(req.user!.id, query);
+    const results = await searchDocumentsHybrid(req.user!.id, query);
 
-    sendSuccess(
-      res,
-      200,
-      documents.map((document) => ({
-        documentId: document.id,
-        fileName: document.file_name,
-        documentType: document.document_type,
-        processingStatus: document.processing_status,
-        documentDate: document.document_date,
-        excerpt: document.notes ?? document.file_name,
-      })),
-    );
+    sendSuccess(res, 200, results);
   } catch (error) {
     handleDocumentError(res, error, "Search documents");
   }
@@ -145,10 +135,17 @@ export async function getDocument(req: Request, res: Response): Promise<void> {
     }
 
     const signedUrl = await getSignedUrl(document.storage_path);
+    const extractedData = await getExtractedDataForDocument(
+      req.user!.id,
+      document.id,
+      document.document_type,
+      document.processing_status,
+    );
 
     sendSuccess(res, 200, {
       ...toDocumentResponse(document),
       signedUrl,
+      extractedData,
     });
   } catch (error) {
     handleDocumentError(res, error, "Get document");

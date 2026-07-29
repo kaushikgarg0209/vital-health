@@ -17,6 +17,10 @@ const envSchema = z
     GEMINI_API_KEY: z.string().min(1),
     GEMINI_CLASSIFICATION_MODEL: z.string().min(1).default("gemini-3.1-flash-lite"),
     GEMINI_EXTRACTION_MODEL: z.string().min(1).default("gemini-3.1-flash-lite"),
+    GEMINI_EMBEDDING_MODEL: z.string().min(1).default("gemini-embedding-001"),
+    EMBEDDING_CHUNK_SIZE: z.coerce.number().int().positive().default(3200),
+    EMBEDDING_CHUNK_OVERLAP: z.coerce.number().int().nonnegative().default(400),
+    EMBEDDING_MIN_SIMILARITY: z.coerce.number().min(0).max(1).default(0.62),
   })
   .transform((data) => {
     const baseUrl =

@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { AppBreadcrumbs } from "@/components/layout/app-breadcrumbs";
 import { DocumentTimeline } from "@/components/health/document-timeline";
 import { DocumentUploader } from "@/components/health/document-uploader";
+import { SearchBar } from "@/components/health/search-bar";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,8 @@ export default function RecordsPage() {
             <ArrowRight className="size-4" />
           </Link>
         </div>
+
+        <SearchBar className="w-full" placeholder="Search your health records…" />
       </div>
 
       <section className="space-y-3">
