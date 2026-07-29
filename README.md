@@ -1,31 +1,61 @@
 # Vital Health
 
-A personal health advocate platform that helps you organize medical records, track biomarkers, manage bills and insurance, and get AI-powered health guidance — with optional family caregiver access and wellness gamification.
+Upload your medical records once — Vital classifies them, extracts the important data, and lets you search your health history in plain language. Ask for "blood sugar" and find glucose results even if you never typed those exact words.
 
-## Monorepo structure
+Built as a full-stack monorepo with AI document processing, vector search, and a modern React UI.
 
-```
-vital-health/
-├── frontend/     # Next.js app (port 3000)
-├── backend/      # Express API (port 3001)
-└── supabase/     # Database migrations & local Supabase config
-```
+## Features
+
+**Accounts & profiles**
+- Register, login, and session management with Supabase Auth
+- Onboarding flow and profile settings
+
+**Health records**
+- Upload PDFs and images (lab reports, prescriptions, bills, EOBs)
+- Private storage with a chronological records timeline
+- Inline document viewer on the detail page
+
+**AI-powered extraction**
+- Background workers classify each upload with Gemini
+- Structured data persisted by document type:
+  - Lab reports → biomarker readings (glucose, HbA1c, etc.)
+  - Prescriptions → medications and dosages
+  - Medical bills & insurance EOBs → billing summaries
+- Detail pages render extracted data in type-specific panels
+
+**Semantic search**
+- Hybrid search: vector similarity (pgvector) + keyword fallback
+- Search from the Records page or the app header
+- Debounced input, live dropdown results, excerpt highlighting
+- Similarity threshold filters irrelevant matches
 
 ## Tech stack
 
 | Layer | Stack |
 |-------|-------|
-| Frontend | Next.js 16, React 19, Tailwind CSS v4, shadcn/ui, TanStack Query, Zustand |
-| Backend | Express 5, TypeScript, Zod |
-| Database & Auth | Supabase (PostgreSQL, Auth, Storage) |
-| AI | OpenAI (health advocate chat, document extraction) |
+| Frontend | Next.js 16, React 19, Tailwind CSS v4, shadcn/ui, TanStack Query |
+| Backend | Express 5, TypeScript, Zod, BullMQ |
+| Database & Auth | Supabase (PostgreSQL, Auth, Storage, pgvector) |
+| Job queues | Redis + BullMQ |
+| AI | Google Gemini (classification, extraction, embeddings) |
+
+## Monorepo structure
+
+```
+vital-health/
+├── frontend/          # Next.js app (port 3000)
+├── backend/           # Express API (port 3001)
+├── supabase/          # Migrations & local Supabase config
+└── docker-compose.yml # Local Redis
+```
 
 ## Prerequisites
 
 - Node.js 20+
 - npm
-- A [Supabase](https://supabase.com) project (URL + anon key + service role key)
-- Docker Desktop (for local Redis)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Supabase CLI](https://supabase.com/docs/guides/cli)
+- [Google Gemini API key](https://aistudio.google.com/apikey)
 
 ## Getting started
 
@@ -39,112 +69,154 @@ cd backend && npm install
 cd ../frontend && npm install
 ```
 
-### 2. Environment variables
+### 2. Start local infrastructure
 
-**Backend** — copy `backend/.env.example` to `backend/.env`:
+From the repo root:
+
+```bash
+supabase start
+supabase db push --local
+docker compose up -d
+```
+
+Verify:
+
+```bash
+supabase status                              # copy URL and keys into .env
+docker exec -it redis redis-cli ping         # → PONG
+```
+
+### 3. Environment variables
+
+**Backend** — `backend/.env` (copy from `backend/.env.example`):
 
 ```bash
 cp backend/.env.example backend/.env
 ```
 
-Fill in your Supabase credentials and set `PORT=3001`.
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | `http://127.0.0.1:54321` for local dev |
+| `SUPABASE_ANON_KEY` | From `supabase status` |
+| `SUPABASE_SERVICE_ROLE_KEY` | From `supabase status` |
+| `REDIS_URL` | `redis://localhost:6379` |
+| `GEMINI_API_KEY` | Your Gemini API key |
+| `FRONTEND_URL` | `http://127.0.0.1:3000` |
 
-**Frontend** — copy `frontend/.env.example` to `frontend/.env.local`:
+**Frontend** — `frontend/.env.local` (copy from `frontend/.env.example`):
 
 ```bash
 cp frontend/.env.example frontend/.env.local
 ```
 
-Required variables:
-
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon (public) key |
-| `NEXT_PUBLIC_API_URL` | Backend API URL (`http://localhost:3001` for local dev) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Same as backend `SUPABASE_URL` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same anon key |
+| `NEXT_PUBLIC_API_URL` | Leave empty to use the built-in `/api/v1` proxy |
 
-### 3. Start Redis (local)
+### 4. Run the app
 
-From the repo root:
-
-```bash
-docker compose up -d
-```
-
-Verify Redis is running:
+Three terminals for the full pipeline:
 
 ```bash
-docker exec -it redis redis-cli ping
-# PONG
-```
+# API server
+cd backend && npm run dev
 
-Add `REDIS_URL=redis://localhost:6379` to `backend/.env` (included in `backend/.env.example`). The backend will use this in Phase 2 for background job queues.
-
-Useful commands:
-
-```bash
-docker compose ps        # check status
-docker compose down      # stop Redis
-docker compose logs redis  # view logs
-```
-
-### 4. Run development servers
-
-In separate terminals:
-
-```bash
-# Backend API
-cd backend
-npm run dev
-# → http://localhost:3001
+# Background workers (document processing + embeddings)
+cd backend && npm run worker
 
 # Frontend
-cd frontend
-npm run dev
-# → http://localhost:3000
+cd frontend && npm run dev
 ```
 
-Verify the backend health check:
+Open http://localhost:3000
+
+Health check:
 
 ```bash
-curl http://localhost:3001/api/health
-# { "status": "ok" }
+curl http://localhost:3001/api/v1/health
 ```
 
-## Available scripts
+> If you see `ECONNREFUSED` on port 6379, Redis is not running — run `docker compose up -d`. Document processing and search indexing need Redis and the worker process.
 
-### Frontend (`frontend/`)
+### 5. Quick demo
+
+1. Register and complete onboarding
+2. **Records** → upload a lab report PDF
+3. Wait for processing (worker must be running)
+4. Open the document to see extracted biomarkers
+5. Search `blood sugar` or `glucose` from the header or Records page
+
+To index older documents that were uploaded before search was added:
+
+```bash
+cd backend && npm run backfill:embeddings
+```
+
+## How it works
+
+```
+Upload  →  classify & extract (Gemini)  →  persist structured data
+        →  chunk & embed (Gemini + pgvector)  →  store vectors
+
+Search  →  embed query  →  cosine similarity + keyword match  →  ranked results
+```
+
+## Scripts
+
+### Frontend
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start Next.js dev server |
+| `npm run dev` | Dev server |
 | `npm run build` | Production build |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
+| `npm run lint` | ESLint |
 
-### Backend (`backend/`)
+### Backend
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start API with nodemon (hot reload) |
-| `npm run build` | Compile TypeScript to `dist/` |
-| `npm run start` | Run compiled production server |
+| `npm run dev` | API with hot reload |
+| `npm run worker` | Document + embedding workers |
+| `npm run test` | All integration tests |
+| `npm run test:gemini` | Gemini connectivity & parsing |
+| `npm run test:processing` | Upload → extract → DB pipeline |
+| `npm run test:embeddings` | Chunking, embedding & search |
+| `npm run backfill:embeddings` | Index documents missing embeddings |
 
-## Project documentation
+### Infrastructure
 
-Detailed specs live in the repo root as reference docs (not committed to git):
+| Command | Description |
+|---------|-------------|
+| `supabase start` / `supabase stop` | Local Supabase |
+| `supabase db push --local` | Apply migrations |
+| `supabase db reset` | Reset local database |
+| `docker compose up -d` | Start Redis |
+| `docker compose down` | Stop Redis |
 
-- `vital_prd_frd.md` — product & functional requirements
-- `vital_system_architecture.md` — system design & folder structure
-- `vital_design_system.md` — UI tokens, colors, typography
-- `vital_development_roadmap.md` — phased build plan
-- `vital_database_design.md` — schema & RLS policies
-- `vital_api_reference.md` — REST API endpoints
+## API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/health` | Health check |
+| `POST` | `/api/v1/auth/register` | Register |
+| `POST` | `/api/v1/auth/login` | Login |
+| `POST` | `/api/v1/auth/logout` | Logout |
+| `GET` | `/api/v1/auth/session` | Current session |
+| `GET` | `/api/v1/profile` | User profile |
+| `POST` | `/api/v1/documents/upload` | Upload document |
+| `GET` | `/api/v1/documents` | List documents |
+| `GET` | `/api/v1/documents/search` | Semantic + keyword search |
+| `GET` | `/api/v1/documents/:id` | Detail + extracted data |
+| `PATCH` | `/api/v1/documents/:id` | Update metadata |
+| `DELETE` | `/api/v1/documents/:id` | Delete document |
 
 ## Deployment (planned)
 
 | Service | Target |
 |---------|--------|
-| Frontend | Vercel (`frontend/` as root directory) |
-| Backend | Railway |
-| Database | Supabase (hosted) |
+| Frontend | Vercel |
+| Backend + workers | Railway |
+| Database | Supabase |
+| Redis | Upstash or Railway |
