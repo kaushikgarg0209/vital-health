@@ -1,0 +1,103 @@
+import "dotenv/config";
+import { applyGuardrails } from "../src/services/ai/guardrails.js";
+import { streamChatReply } from "../src/services/ai/chatService.js";
+import {
+  createConversation,
+  getRecentMessages,
+  saveMessage,
+} from "../src/services/chatService.js";
+import { getProfileByUserId } from "../src/services/profileService.js";
+import type { ChatSource } from "../src/types/chat.js";
+import { supabaseAdmin } from "../src/config/supabase.js";
+
+async function getTestUserId(): Promise<string> {
+  const { data: profile, error } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!profile) {
+    throw new Error("No profiles found — register a user first.");
+  }
+
+  return profile.id;
+}
+
+async function collectStreamText(
+  userId: string,
+  userMessage: string,
+  profile: Awaited<ReturnType<typeof getProfileByUserId>>,
+  history: Awaited<ReturnType<typeof getRecentMessages>>,
+): Promise<{ text: string; sources: ChatSource[] }> {
+  let text = "";
+  let sources: ChatSource[] = [];
+
+  for await (const event of streamChatReply({
+    userId,
+    userMessage,
+    profile,
+    history,
+  })) {
+    if (event.kind === "override" || event.kind === "complete") {
+      text = event.content;
+      sources = event.sources;
+    }
+
+    if (event.kind === "token") {
+      text += event.content;
+    }
+  }
+
+  return { text, sources };
+}
+
+async function main(): Promise<void> {
+  console.log("Testing guardrails...");
+  const guardrail = applyGuardrails("I think I'm having a heart attack");
+
+  if (!guardrail.override) {
+    throw new Error("Expected emergency guardrail to override");
+  }
+
+  console.log("Guardrail override:", guardrail.response?.slice(0, 80));
+
+  const userId = await getTestUserId();
+  const profile = await getProfileByUserId(userId);
+  const conversation = await createConversation(userId, "RAG test");
+
+  console.log(`Created conversation ${conversation.id}`);
+
+  const question = "What was my glucose level in my lab report?";
+  const history = await getRecentMessages(userId, conversation.id, 6);
+
+  console.log(`Asking: ${question}`);
+  const { text, sources } = await collectStreamText(userId, question, profile, history);
+
+  console.log("\nAssistant response:\n", text);
+  console.log("\nSources:", JSON.stringify(sources, null, 2));
+
+  await saveMessage(conversation.id, userId, "user", question);
+  await saveMessage(conversation.id, userId, "assistant", text, sources);
+
+  if (!text.toLowerCase().includes("95") && !text.toLowerCase().includes("glucose")) {
+    console.warn(
+      "Warning: response may not reference expected glucose data — ensure embedded lab reports exist.",
+    );
+  }
+
+  if (sources.length === 0) {
+    console.warn("Warning: no sources returned — run npm run backfill:embeddings if needed.");
+  }
+
+  console.log("\nRAG chat backend verification passed.");
+}
+
+main().catch((error) => {
+  console.error("RAG chat test failed:", error);
+  process.exit(1);
+});

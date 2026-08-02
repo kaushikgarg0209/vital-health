@@ -12,7 +12,8 @@
     "test:processing": "tsx scripts/test-document-processing.ts",
     "test:embeddings": "tsx scripts/test-embeddings.ts",
     "backfill:embeddings": "tsx scripts/backfill-embeddings.ts",
-    "test": "npm run test:gemini && npm run test:processing && npm run test:embeddings"
+    "test:chat": "tsx scripts/test-chat-rag.ts",
+    "test": "npm run test:gemini && npm run test:processing && npm run test:embeddings && npm run test:chat"
   },
   "keywords": [],
   "author": "",

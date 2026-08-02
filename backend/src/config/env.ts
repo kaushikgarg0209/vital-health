@@ -21,6 +21,9 @@ const envSchema = z
     EMBEDDING_CHUNK_SIZE: z.coerce.number().int().positive().default(3200),
     EMBEDDING_CHUNK_OVERLAP: z.coerce.number().int().nonnegative().default(400),
     EMBEDDING_MIN_SIMILARITY: z.coerce.number().min(0).max(1).default(0.62),
+    GEMINI_CHAT_MODEL: z.string().min(1).default("gemini-3.1-flash-lite"),
+    CHAT_HISTORY_LIMIT: z.coerce.number().int().min(1).max(20).default(6),
+    CHAT_RETRIEVAL_LIMIT: z.coerce.number().int().min(1).max(20).default(8),
   })
   .transform((data) => {
     const baseUrl =
