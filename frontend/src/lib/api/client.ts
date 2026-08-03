@@ -19,7 +19,7 @@ type ApiErrorBody = {
   };
 };
 
-function resolveUrl(path: string): string {
+export function resolveUrl(path: string): string {
   if (path.startsWith("http://") || path.startsWith("https://")) {
     return path;
   }
