@@ -21,9 +21,9 @@ export default async function AppLayout({
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <AppHeader user={user} />
-        <main className="flex-1 bg-neutral-25 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 min-h-0 overflow-x-hidden bg-neutral-25 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

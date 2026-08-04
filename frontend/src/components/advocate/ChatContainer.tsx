@@ -14,6 +14,7 @@ import { streamMessage } from "@/lib/api/chat";
 import { ApiError } from "@/lib/api/client";
 import { useChatStore } from "@/lib/stores/chatStore";
 import { useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 const SUGGESTED_PROMPTS = [
   "Explain my last blood test",
@@ -21,10 +22,13 @@ const SUGGESTED_PROMPTS = [
   "Summarize my recent lab results",
 ];
 
-export function ChatContainer() {
+const AUTO_SCROLL_THRESHOLD_PX = 80;
+
+export function ChatContainer({ className }: { className?: string }) {
   const queryClient = useQueryClient();
   const createSessionMutation = useCreateChatSession();
-  const scrollAnchorRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
 
   const activeSessionId = useChatStore((state) => state.activeSessionId);
   const messages = useChatStore((state) => state.messages);
@@ -41,7 +45,29 @@ export function ChatContainer() {
   const { isLoading: isLoadingSession } = useChatSession(activeSessionId);
 
   const scrollToBottom = useCallback(() => {
-    scrollAnchorRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+
+    if (!container || !shouldAutoScrollRef.current) {
+      return;
+    }
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: useChatStore.getState().isStreaming ? "auto" : "smooth",
+    });
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+
+    shouldAutoScrollRef.current = distanceFromBottom <= AUTO_SCROLL_THRESHOLD_PX;
   }, []);
 
   useEffect(() => {
@@ -51,6 +77,7 @@ export function ChatContainer() {
   const handleSend = useCallback(
     async (text: string) => {
       setError(null);
+      shouldAutoScrollRef.current = true;
 
       let sessionId = activeSessionId;
 
@@ -108,9 +135,13 @@ export function ChatContainer() {
   const showEmptyState = !isLoadingSession && messages.length === 0 && !isStreaming;
 
   return (
-    <Card className="flex min-h-[560px] flex-col border-neutral-100 shadow-none">
-      <CardContent className="flex min-h-0 flex-1 flex-col p-0">
-        <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+    <Card className={cn("flex min-h-0 w-full min-w-0 flex-1 flex-col gap-0 overflow-hidden border-neutral-100 py-0 shadow-none", className)}>
+      <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-behavior-contain px-4 py-6 sm:px-6"
+        >
           {showEmptyState ? (
             <div className="flex h-full flex-col items-center justify-center py-8 text-center">
               <div className="flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-600">
@@ -146,18 +177,17 @@ export function ChatContainer() {
                 <ChatMessage key={message.id} message={message} />
               ))}
               <StreamingMessage />
-              <div ref={scrollAnchorRef} />
             </div>
           )}
         </div>
 
         {error ? (
-          <div className="border-t border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700 sm:px-6">
+          <div className="shrink-0 border-t border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700 sm:px-6">
             {error}
           </div>
         ) : null}
 
-        <div className="border-t border-neutral-100 p-4 sm:p-6">
+        <div className="shrink-0 border-t border-neutral-100 p-4 sm:p-6">
           <ChatInput
             onSend={(message) => void handleSend(message)}
             isStreaming={isStreaming}

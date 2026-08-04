@@ -11,6 +11,7 @@ type ConversationListProps = {
   activeSessionId: string | null;
   onSelect: (sessionId: string) => void;
   onNewChat: () => void;
+  onNavigate?: () => void;
   className?: string;
 };
 
@@ -72,6 +73,7 @@ export function ConversationList({
   activeSessionId,
   onSelect,
   onNewChat,
+  onNavigate,
   className,
 }: ConversationListProps) {
   const { data, isLoading, isError, error, refetch } = useChatSessions();
@@ -79,13 +81,16 @@ export function ConversationList({
   const sessions = data?.sessions ?? [];
 
   return (
-    <Card className={cn("border-neutral-100 shadow-none", className)}>
-      <CardContent className="space-y-3 p-3">
+    <Card className={cn("flex h-full min-h-0 w-full min-w-0 flex-col gap-0 border-neutral-100 py-0 shadow-none", className)}>
+      <CardContent className="flex min-h-0 flex-1 flex-col p-3">
         <Button
           type="button"
           variant="outline"
-          className="w-full justify-start rounded-xl border-neutral-200"
-          onClick={onNewChat}
+          className="w-full shrink-0 justify-start rounded-xl border-neutral-200"
+          onClick={() => {
+            onNewChat();
+            onNavigate?.();
+          }}
         >
           <MessageSquarePlus className="size-4" />
           New chat
@@ -115,13 +120,16 @@ export function ConversationList({
         ) : null}
 
         {!isLoading && !isError ? (
-          <div className="max-h-[420px] space-y-1 overflow-y-auto">
+          <div className="mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto">
             {sessions.map((session) => (
               <ConversationItem
                 key={session.id}
                 session={session}
                 isActive={session.id === activeSessionId}
-                onSelect={() => onSelect(session.id)}
+                onSelect={() => {
+                  onSelect(session.id);
+                  onNavigate?.();
+                }}
               />
             ))}
           </div>

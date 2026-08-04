@@ -13,6 +13,7 @@ type SearchBarProps = {
   variant?: "default" | "compact";
   className?: string;
   placeholder?: string;
+  onExpandedChange?: (expanded: boolean) => void;
 };
 
 function SearchResultsSkeleton() {
@@ -38,12 +39,14 @@ function SearchDropdown({
   isOpen,
   listboxId,
   onClose,
+  isCompact = false,
 }: {
   query: string;
   debouncedQuery: string;
   isOpen: boolean;
   listboxId: string;
   onClose: () => void;
+  isCompact?: boolean;
 }) {
   const { data, isPending, isFetching, isError, error, refetch } = useSearchDocuments(
     debouncedQuery,
@@ -61,7 +64,12 @@ function SearchDropdown({
     <div
       id={listboxId}
       role="listbox"
-      className="absolute top-[calc(100%+0.5rem)] z-50 w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg"
+      className={cn(
+        "z-50 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg",
+        isCompact
+          ? "fixed top-[calc(4rem+0.5rem)] right-4 left-4"
+          : "absolute top-[calc(100%+0.5rem)] w-full",
+      )}
     >
       {showLoading ? <SearchResultsSkeleton /> : null}
 
@@ -102,6 +110,7 @@ export function SearchBar({
   variant = "default",
   className,
   placeholder = "Search your health records…",
+  onExpandedChange,
 }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -124,6 +133,7 @@ export function SearchBar({
       if (!containerRef.current?.contains(event.target as Node)) {
         setIsFocused(false);
         setIsExpanded(false);
+        onExpandedChange?.(false);
       }
     }
 
@@ -131,6 +141,7 @@ export function SearchBar({
       if (event.key === "Escape") {
         setIsFocused(false);
         setIsExpanded(false);
+        onExpandedChange?.(false);
         inputRef.current?.blur();
       }
     }
@@ -142,15 +153,17 @@ export function SearchBar({
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isOpen, isExpanded]);
+  }, [isOpen, isExpanded, onExpandedChange]);
 
   function handleClose() {
     setIsFocused(false);
     setIsExpanded(false);
+    onExpandedChange?.(false);
   }
 
   function handleExpand() {
     setIsExpanded(true);
+    onExpandedChange?.(true);
     window.requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
@@ -168,7 +181,7 @@ export function SearchBar({
           <Search className="size-4" />
         </button>
       ) : (
-        <div className="relative">
+        <div className="relative w-full">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-400" />
           <Input
             ref={inputRef}
@@ -191,7 +204,7 @@ export function SearchBar({
             aria-autocomplete="list"
             className={cn(
               "h-10 rounded-xl border-neutral-200 bg-white pr-10 pl-10 text-sm shadow-none",
-              isCompact && isExpanded && "w-[min(18rem,calc(100vw-5rem))]",
+              isCompact && isExpanded && "w-full",
             )}
           />
 
@@ -220,6 +233,7 @@ export function SearchBar({
           isOpen={isOpen}
           listboxId={listboxId}
           onClose={handleClose}
+          isCompact
         />
       ) : !isCompact ? (
         <SearchDropdown

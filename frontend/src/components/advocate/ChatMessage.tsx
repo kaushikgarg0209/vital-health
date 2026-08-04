@@ -1,4 +1,5 @@
 import { Bot, UserRound } from "lucide-react";
+import { ChatMarkdown } from "@/components/advocate/ChatMarkdown";
 import { SourceCitations } from "@/components/advocate/SourceCitations";
 import type { UiChatMessage } from "@/types/chat";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <div
-      className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}
+      className={cn("flex min-w-0 gap-3", isUser ? "flex-row-reverse" : "flex-row")}
     >
       <div
         className={cn(
@@ -25,13 +26,17 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
       <div
         className={cn(
-          "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+          "min-w-0 max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
           isUser
             ? "bg-primary-600 text-white"
             : "border border-neutral-100 bg-white text-neutral-800 shadow-sm shadow-neutral-100/60",
         )}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        {isUser ? (
+          <p className="break-words whitespace-pre-wrap [overflow-wrap:anywhere]">{message.content}</p>
+        ) : (
+          <ChatMarkdown content={message.content} />
+        )}
         {!isUser ? <SourceCitations sources={message.sources} /> : null}
       </div>
     </div>

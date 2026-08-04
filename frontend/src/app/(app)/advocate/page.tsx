@@ -2,7 +2,7 @@
 
 import { AppBreadcrumbs } from "@/components/layout/app-breadcrumbs";
 import { ChatContainer } from "@/components/advocate/ChatContainer";
-import { ConversationList } from "@/components/advocate/ConversationList";
+import { ConversationSidebar } from "@/components/advocate/ConversationSidebar";
 import { useChatStore } from "@/lib/stores/chatStore";
 
 export default function AdvocatePage() {
@@ -25,8 +25,8 @@ export default function AdvocatePage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="space-y-4">
+    <div className="mx-auto flex h-[calc(100dvh-6rem)] w-full min-w-0 max-w-6xl flex-col gap-6 overflow-hidden sm:h-[calc(100dvh-7rem)] lg:h-[calc(100dvh-8rem)]">
+      <div className="shrink-0 space-y-4">
         <AppBreadcrumbs
           items={[
             { label: "Dashboard", href: "/dashboard" },
@@ -43,13 +43,14 @@ export default function AdvocatePage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[280px_1fr]">
-        <ConversationList
+      <div className="flex min-h-0 flex-1 flex-col">
+        <ConversationSidebar
           activeSessionId={activeSessionId}
           onSelect={handleSelectSession}
           onNewChat={handleNewChat}
-        />
-        <ChatContainer />
+        >
+          <ChatContainer className="min-h-0 flex-1" />
+        </ConversationSidebar>
       </div>
     </div>
   );

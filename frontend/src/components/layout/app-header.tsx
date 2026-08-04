@@ -15,6 +15,7 @@ type AppHeaderProps = {
 
 export function AppHeader({ user }: AppHeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
 
   useEffect(() => {
     if (!mobileOpen) {
@@ -38,19 +39,19 @@ export function AppHeader({ user }: AppHeaderProps) {
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between gap-4 border-b border-neutral-200 bg-white px-4 sm:px-6">
-        <div className="flex min-w-0 items-center gap-3">
+      <header className="flex h-16 items-center gap-2 border-b border-neutral-200 bg-white px-4 sm:gap-4 sm:px-6">
+        <div className="flex min-w-0 shrink-0 items-center gap-3">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            className="inline-flex size-10 items-center justify-center rounded-xl border border-neutral-200 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-800 md:hidden"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-800 md:hidden"
             aria-label="Open navigation menu"
             aria-expanded={mobileOpen}
           >
             <Menu className="size-5" />
           </button>
 
-          <div className="md:hidden">
+          <div className={cn("md:hidden", searchExpanded && "hidden")}>
             <VitalLogo href="/dashboard" iconClassName="size-8 rounded-lg" labelClassName="text-base" />
           </div>
 
@@ -67,13 +68,26 @@ export function AppHeader({ user }: AppHeaderProps) {
               <SearchBar variant="default" className="w-full max-w-lg" />
             </div>
 
-            <div className="md:hidden">
-              <SearchBar variant="compact" />
+            <div
+              className={cn(
+                "md:hidden",
+                searchExpanded ? "min-w-0 flex-1" : "ml-auto shrink-0",
+              )}
+            >
+              <SearchBar
+                variant="compact"
+                className={searchExpanded ? "w-full" : undefined}
+                onExpandedChange={setSearchExpanded}
+              />
             </div>
           </>
         ) : null}
 
-        {user ? <UserAccountMenu user={user} /> : null}
+        {user ? (
+          <div className="shrink-0">
+            <UserAccountMenu user={user} />
+          </div>
+        ) : null}
       </header>
 
       {mobileOpen ? (
