@@ -7,7 +7,7 @@ import {
   saveMessage,
 } from "../src/services/chatService.js";
 import { getProfileByUserId } from "../src/services/profileService.js";
-import type { ChatSource } from "../src/types/chat.js";
+import type { ChatSource, Message } from "../src/types/chat.js";
 import { supabaseAdmin } from "../src/config/supabase.js";
 
 async function getTestUserId(): Promise<string> {
@@ -32,7 +32,7 @@ async function collectStreamText(
   userId: string,
   userMessage: string,
   profile: Awaited<ReturnType<typeof getProfileByUserId>>,
-  history: Awaited<ReturnType<typeof getRecentMessages>>,
+  history: Message[],
 ): Promise<{ text: string; sources: ChatSource[] }> {
   let text = "";
   let sources: ChatSource[] = [];
@@ -43,7 +43,7 @@ async function collectStreamText(
     profile,
     history,
   })) {
-    if (event.kind === "override" || event.kind === "complete") {
+    if (event.kind === "override") {
       text = event.content;
       sources = event.sources;
     }
@@ -51,10 +51,55 @@ async function collectStreamText(
     if (event.kind === "token") {
       text += event.content;
     }
+
+    if (event.kind === "complete") {
+      text = event.content;
+      sources = event.sources;
+    }
   }
 
-  return { text, sources };
+  return { text: text.trim(), sources };
 }
+
+function assertFollowUpHelpful(followUpText: string): void {
+  const lower = followUpText.toLowerCase();
+
+  if (lower.includes("i don't have that information in your records")) {
+    throw new Error("Follow-up incorrectly refused with 'I don't have that information in your records'");
+  }
+
+  const hasRangeContext =
+    lower.includes("normal") ||
+    lower.includes("range") ||
+    lower.includes("healthy") ||
+    lower.includes("100") ||
+    lower.includes("mg/dl");
+
+  if (!hasRangeContext) {
+    throw new Error(
+      "Follow-up response did not include general glucose range context (normal/range/healthy/100/mg/dL)",
+    );
+  }
+}
+
+function assertGlucoseParaphraseResponse(question: string, response: string): void {
+  const lower = response.toLowerCase();
+
+  if (lower.includes("i don't have that information in your records")) {
+    throw new Error(`Paraphrase incorrectly refused: "${question}"`);
+  }
+
+  if (!lower.includes("95") && !lower.includes("glucose")) {
+    throw new Error(`Paraphrase missing core glucose fact: "${question}"`);
+  }
+}
+
+const GLUCOSE_PARAPHRASES = [
+  "What was my glucose value in my recent lab reports?",
+  "what is my recent glucose value trend?",
+  "Tell me my blood sugar from my labs",
+  "How much glucose showed up on my last test?",
+];
 
 async function main(): Promise<void> {
   console.log("Testing guardrails...");
@@ -92,6 +137,23 @@ async function main(): Promise<void> {
 
   if (sources.length === 0) {
     console.warn("Warning: no sources returned — run npm run backfill:embeddings if needed.");
+  }
+
+  const followUpQuestion = "Is that in a healthy range?";
+  const followUpHistory = await getRecentMessages(userId, conversation.id, 6);
+
+  console.log(`\nFollow-up: ${followUpQuestion}`);
+  const followUp = await collectStreamText(userId, followUpQuestion, profile, followUpHistory);
+
+  console.log("\nFollow-up response:\n", followUp.text);
+  assertFollowUpHelpful(followUp.text);
+
+  console.log("\nTesting glucose paraphrase parity...");
+  for (const paraphrase of GLUCOSE_PARAPHRASES) {
+    console.log(`\nParaphrase: ${paraphrase}`);
+    const { text: paraphraseText } = await collectStreamText(userId, paraphrase, profile, []);
+    console.log("Response preview:", paraphraseText.slice(0, 160));
+    assertGlucoseParaphraseResponse(paraphrase, paraphraseText);
   }
 
   console.log("\nRAG chat backend verification passed.");

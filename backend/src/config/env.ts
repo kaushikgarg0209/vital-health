@@ -24,6 +24,11 @@ const envSchema = z
     GEMINI_CHAT_MODEL: z.string().min(1).default("gemini-3.1-flash-lite"),
     CHAT_HISTORY_LIMIT: z.coerce.number().int().min(1).max(20).default(6),
     CHAT_RETRIEVAL_LIMIT: z.coerce.number().int().min(1).max(20).default(8),
+    CHAT_RETRIEVAL_MIN_SIMILARITY: z.coerce.number().min(0).max(1).default(0.55),
+    CHAT_QUERY_EXPANSION_ENABLED: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true"),
   })
   .transform((data) => {
     const baseUrl =

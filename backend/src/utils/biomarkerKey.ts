@@ -3,6 +3,8 @@ const BIOMARKER_ALIASES: Record<string, string> = {
   "fasting glucose": "glucose",
   "blood glucose": "glucose",
   "fasting blood glucose": "glucose",
+  "blood sugar": "glucose",
+  "blood sugar level": "glucose",
   fbs: "glucose",
   fbg: "glucose",
   hba1c: "hba1c",
@@ -52,4 +54,23 @@ export function resolveBiomarkerKey(testName: string, biomarkerKey?: string | nu
   }
 
   return slugify(testName);
+}
+
+export function detectBiomarkerKeysInText(text: string): string[] {
+  const normalized = text.toLowerCase();
+  const found = new Set<string>();
+
+  const entries = Object.entries(BIOMARKER_ALIASES).sort(
+    (left, right) => right[0].length - left[0].length,
+  );
+
+  for (const [alias, key] of entries) {
+    const pattern = new RegExp(`\\b${alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+
+    if (pattern.test(normalized)) {
+      found.add(key);
+    }
+  }
+
+  return [...found];
 }

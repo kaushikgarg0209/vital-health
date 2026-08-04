@@ -4,7 +4,9 @@ import type { Profile } from "../../types/profile.js";
 import { toChatSources } from "../../types/chat.js";
 import { applyGuardrails } from "./guardrails.js";
 import { buildPrompt, getHistoryLimit } from "./chatPrompts.js";
-import { retrieveRelevantChunks } from "./chatRetrieval.js";
+import { retrieveForChat } from "./chatRetrieval.js";
+import { expandRetrievalQueries } from "./chatQueryExpansion.js";
+import { fetchStructuredFacts } from "./chatStructuredFacts.js";
 import { streamGenerateText } from "./geminiStream.js";
 
 export type StreamChatInput = {
@@ -45,13 +47,20 @@ export async function* streamChatReply(input: StreamChatInput): AsyncGenerator<S
     return;
   }
 
-  const retrievedChunks = await retrieveRelevantChunks(input.userId, input.userMessage);
-  const sources = toChatSources(retrievedChunks);
   const history = input.history.slice(-getHistoryLimit());
+  const searchQueries = await expandRetrievalQueries(input.userMessage, history);
+
+  const [retrievedChunks, structuredFacts] = await Promise.all([
+    retrieveForChat(input.userId, input.userMessage, history, undefined, searchQueries),
+    fetchStructuredFacts(input.userId, input.userMessage, input.profile, searchQueries),
+  ]);
+
+  const sources = toChatSources(retrievedChunks);
 
   const prompt = buildPrompt({
     profile: input.profile,
     retrievedChunks,
+    structuredFacts: structuredFacts.formatted,
     history,
     userMessage: input.userMessage,
   });
