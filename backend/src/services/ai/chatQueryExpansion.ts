@@ -1,16 +1,31 @@
 import { z } from "zod";
 import { CHAT_MODEL, CHAT_QUERY_EXPANSION_ENABLED, geminiClient } from "../../config/gemini.js";
 import type { Message } from "../../types/chat.js";
+import { withGeminiRetry } from "./geminiRetry.js";
 
 const expansionSchema = z.object({
   queries: z.array(z.string().min(1)).min(1).max(4),
 });
 
+function isQueryExpansionEnabled(): boolean {
+  const raw = process.env.CHAT_QUERY_EXPANSION_ENABLED;
+
+  if (raw === "false") {
+    return false;
+  }
+
+  if (raw === "true") {
+    return true;
+  }
+
+  return CHAT_QUERY_EXPANSION_ENABLED;
+}
+
 export async function expandRetrievalQueries(
   userMessage: string,
   history: Message[] = [],
 ): Promise<string[]> {
-  if (!CHAT_QUERY_EXPANSION_ENABLED) {
+  if (!isQueryExpansionEnabled()) {
     return [userMessage];
   }
 
@@ -27,14 +42,16 @@ User question: ${userMessage}${contextHint}
 Respond as JSON: { "queries": ["...", "..."] }`;
 
   try {
-    const response = await geminiClient.models.generateContent({
-      model: CHAT_MODEL,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.1,
-      },
-    });
+    const response = await withGeminiRetry(() =>
+      geminiClient.models.generateContent({
+        model: CHAT_MODEL,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      }),
+    );
 
     const text = response.text?.trim();
 

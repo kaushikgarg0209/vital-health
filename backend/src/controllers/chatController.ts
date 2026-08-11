@@ -23,6 +23,11 @@ import {
   type SseEvent,
 } from "../types/chat.js";
 import { sendError, sendPaginatedSuccess, sendSuccess } from "../utils/responseHelpers.js";
+import {
+  GEMINI_RATE_LIMIT_MESSAGE,
+  isGeminiRateLimitError,
+  toGeminiRateLimitError,
+} from "../services/ai/geminiRetry.js";
 
 function getRouteParam(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
@@ -38,8 +43,31 @@ function handleChatError(res: Response, error: unknown, context: string): void {
     return;
   }
 
+  if (isGeminiRateLimitError(error)) {
+    sendError(res, 429, GEMINI_RATE_LIMIT_MESSAGE, "RATE_LIMIT_EXCEEDED");
+    return;
+  }
+
   console.error(`${context} error:`, error);
   sendError(res, 500, "Internal server error", "INTERNAL_ERROR");
+}
+
+function resolveStreamError(error: unknown): { message: string; code: string; statusCode: number } {
+  if (isGeminiRateLimitError(error)) {
+    const rateLimitError = toGeminiRateLimitError(error);
+
+    return {
+      message: rateLimitError.message,
+      code: rateLimitError.code,
+      statusCode: rateLimitError.statusCode,
+    };
+  }
+
+  return {
+    message: "Chat stream failed. Please try again.",
+    code: "INTERNAL_ERROR",
+    statusCode: 500,
+  };
 }
 
 function writeSseEvent(res: Response, event: SseEvent): void {
@@ -175,14 +203,17 @@ export async function streamMessageHandler(req: Request, res: Response): Promise
   } catch (error) {
     console.error("Stream chat message error:", error);
 
+    const streamError = resolveStreamError(error);
+
     if (!res.headersSent) {
-      handleChatError(res, error, "Stream chat message");
+      sendError(res, streamError.statusCode, streamError.message, streamError.code);
       return;
     }
 
     writeSseEvent(res, {
       type: "error",
-      message: error instanceof Error ? error.message : "Chat stream failed",
+      message: streamError.message,
+      code: streamError.code,
     });
     res.end();
   }

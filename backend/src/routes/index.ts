@@ -3,6 +3,7 @@ import authRouter from "./auth.js";
 import chatRouter from "./chat.js";
 import documentsRouter from "./documents.js";
 import healthRouter from "./health.js";
+import labRouter from "./lab.js";
 import profileRouter from "./profile.js";
 
 const router = Router();
@@ -12,5 +13,6 @@ router.use("/health", healthRouter);
 router.use("/profile", profileRouter);
 router.use("/documents", documentsRouter);
 router.use("/chat", chatRouter);
+router.use("/lab", labRouter);
 
 export default router;

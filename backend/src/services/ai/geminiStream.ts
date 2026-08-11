@@ -1,5 +1,6 @@
 import { geminiClient } from "../../config/gemini.js";
 import { GeminiError } from "./geminiJson.js";
+import { withGeminiRetry } from "./geminiRetry.js";
 
 function extractChunkText(chunk: { text?: string }): string {
   return chunk.text ?? "";
@@ -7,13 +8,15 @@ function extractChunkText(chunk: { text?: string }): string {
 
 export async function* streamGenerateText(model: string, prompt: string): AsyncGenerator<string> {
   try {
-    const stream = await geminiClient.models.generateContentStream({
-      model,
-      contents: prompt,
-      config: {
-        temperature: 0.4,
-      },
-    });
+    const stream = await withGeminiRetry(() =>
+      geminiClient.models.generateContentStream({
+        model,
+        contents: prompt,
+        config: {
+          temperature: 0.4,
+        },
+      }),
+    );
 
     for await (const chunk of stream) {
       const text = extractChunkText(chunk);

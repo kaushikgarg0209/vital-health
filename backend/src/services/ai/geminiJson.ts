@@ -3,6 +3,7 @@ import type { ZodType } from "zod";
 import { geminiClient } from "../../config/gemini.js";
 import type { DocumentInputPart } from "../../utils/documentInput.js";
 import { JSON_CORRECTION_PROMPT } from "./documentPrompts.js";
+import { withGeminiRetry } from "./geminiRetry.js";
 
 export class GeminiError extends Error {
   constructor(
@@ -43,14 +44,16 @@ function parseJsonResponse(raw: string): unknown {
 
 async function callGeminiJson(model: string, contents: Part[], prompt: string): Promise<string> {
   try {
-    const response = await geminiClient.models.generateContent({
-      model,
-      contents: [...contents, { text: prompt }],
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.1,
-      },
-    });
+    const response = await withGeminiRetry(() =>
+      geminiClient.models.generateContent({
+        model,
+        contents: [...contents, { text: prompt }],
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      }),
+    );
 
     return extractResponseText(response);
   } catch (error) {
@@ -104,10 +107,12 @@ export async function generateText(
   prompt: string,
 ): Promise<string> {
   try {
-    const response = await geminiClient.models.generateContent({
-      model,
-      contents: prompt,
-    });
+    const response = await withGeminiRetry(() =>
+      geminiClient.models.generateContent({
+        model,
+        contents: prompt,
+      }),
+    );
 
     return extractResponseText(response);
   } catch (error) {
