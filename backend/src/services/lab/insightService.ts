@@ -95,6 +95,7 @@ export async function generateInsight(
   const points: BiomarkerReadingPoint[] = readings.map((reading) => ({
     value: reading.value,
     readingDate: reading.readingDate,
+    createdAt: reading.createdAt,
   }));
 
   const summary = buildTrendSummary(points, referenceRange);

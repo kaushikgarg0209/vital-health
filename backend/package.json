@@ -13,7 +13,7 @@
     "test:embeddings": "tsx scripts/test-embeddings.ts",
     "backfill:embeddings": "tsx scripts/backfill-embeddings.ts",
     "test:chat": "tsx scripts/test-chat-rag.ts",
-    "test:lab": "tsx scripts/test-lab-trends.ts",
+    "test:lab": "tsx scripts/test-trend-analysis.ts && tsx scripts/test-lab-trends.ts",
     "test": "npm run test:gemini && npm run test:processing && npm run test:embeddings && npm run test:lab && npm run test:chat"
   },
   "keywords": [],

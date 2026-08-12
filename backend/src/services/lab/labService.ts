@@ -11,6 +11,7 @@ import {
 import {
   buildTrendSummary,
   calculateTrend,
+  compareReadingPoints,
   determineStatus,
   type BiomarkerReadingPoint,
 } from "./trendAnalysis.js";
@@ -96,6 +97,7 @@ export async function fetchReadingsForBiomarker(
     .eq("user_id", userId)
     .eq("biomarker_key", biomarkerKey)
     .order("reading_date", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {
@@ -108,9 +110,10 @@ export async function fetchReadingsForBiomarker(
 export async function listTrackedBiomarkers(userId: string) {
   const { data, error } = await supabaseAdmin
     .from("biomarker_readings")
-    .select("biomarker_key, biomarker_name, value, unit, reading_date, status")
+    .select("biomarker_key, biomarker_name, value, unit, reading_date, status, created_at")
     .eq("user_id", userId)
-    .order("reading_date", { ascending: false });
+    .order("reading_date", { ascending: false })
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new LabError(error.message, 500, "INTERNAL_ERROR");
@@ -135,14 +138,17 @@ export async function listTrackedBiomarkers(userId: string) {
       trendDirection: string;
       deltaPct: number | null;
       readingCount: number;
+      recentReadings: Array<{ value: number; readingDate: string }>;
     }
   >();
 
-  const readingsByKey = new Map<string, BiomarkerReadingPoint[]>();
-  const latestMetaByKey = new Map<
-    string,
-    { biomarkerName: string; unit: string; latestDate: string; rawStatus: BiomarkerStatus | null }
-  >();
+  type TrackedPoint = BiomarkerReadingPoint & {
+    biomarkerName: string;
+    unit: string;
+    rawStatus: BiomarkerStatus | null;
+  };
+
+  const readingsByKey = new Map<string, TrackedPoint[]>();
 
   for (const row of data ?? []) {
     const key = row.biomarker_key;
@@ -154,47 +160,48 @@ export async function listTrackedBiomarkers(userId: string) {
     readingsByKey.get(key)!.push({
       value: Number(row.value),
       readingDate: row.reading_date,
+      createdAt: row.created_at,
+      biomarkerName: row.biomarker_name,
+      unit: row.unit,
+      rawStatus: row.status,
     });
-
-    if (!latestMetaByKey.has(key)) {
-      latestMetaByKey.set(key, {
-        biomarkerName: row.biomarker_name,
-        unit: row.unit,
-        latestDate: row.reading_date,
-        rawStatus: row.status,
-      });
-    }
   }
 
   for (const [key, points] of readingsByKey.entries()) {
-    const meta = latestMetaByKey.get(key)!;
+    const sortedPoints = [...points].sort((left, right) =>
+      compareReadingPoints(left, right, "desc"),
+    );
+    const latestPoint = sortedPoints[0]!;
     const referenceRange = await getAdjustedReferenceRange(
       key,
       age,
       profile?.biological_sex ?? null,
     );
 
-    const sortedPoints = [...points].sort(
-      (left, right) =>
-        new Date(`${right.readingDate}T00:00:00.000Z`).getTime() -
-        new Date(`${left.readingDate}T00:00:00.000Z`).getTime(),
-    );
-
     const summary = buildTrendSummary(sortedPoints, referenceRange);
     const catalogMeta = catalogByKey.get(key);
+    const chronological = [...sortedPoints].sort((left, right) =>
+      compareReadingPoints(left, right, "asc"),
+    );
+    const recentReadings = chronological.slice(-5).map((point) => ({
+      value: point.value,
+      readingDate: point.readingDate,
+    }));
 
     latestByKey.set(key, {
       biomarkerKey: key,
-      biomarkerName: meta.biomarkerName,
-      latestValue: sortedPoints[0]?.value ?? 0,
-      unit: meta.unit,
-      latestDate: meta.latestDate,
-      status: summary?.status ?? meta.rawStatus,
+      biomarkerName: latestPoint.biomarkerName,
+      latestValue: latestPoint.value,
+      unit: latestPoint.unit,
+      latestDate: latestPoint.readingDate,
+      status: summary?.status ?? latestPoint.rawStatus,
       category: catalogMeta?.category ?? referenceRange?.category ?? "Other",
-      displayName: catalogMeta?.displayName ?? referenceRange?.displayName ?? meta.biomarkerName,
+      displayName:
+        catalogMeta?.displayName ?? referenceRange?.displayName ?? latestPoint.biomarkerName,
       trendDirection: summary?.trend.direction ?? "stable",
       deltaPct: summary?.trend.deltaPct ?? null,
       readingCount: sortedPoints.length,
+      recentReadings,
     });
   }
 
@@ -244,6 +251,7 @@ export async function getBiomarkerDetail(userId: string, biomarkerKey: string) {
   const points: BiomarkerReadingPoint[] = readings.map((reading) => ({
     value: reading.value,
     readingDate: reading.readingDate,
+    createdAt: reading.createdAt,
   }));
 
   const summary = buildTrendSummary(points, referenceRange);
@@ -364,6 +372,20 @@ export async function markAlertRead(userId: string, alertId: string): Promise<Bi
   };
 }
 
+function findReadingForPoint(
+  readings: BiomarkerReading[],
+  point: BiomarkerReadingPoint,
+): BiomarkerReading | null {
+  return (
+    readings.find(
+      (reading) =>
+        reading.value === point.value &&
+        reading.readingDate === point.readingDate &&
+        reading.createdAt === point.createdAt,
+    ) ?? null
+  );
+}
+
 export async function processTrendForBiomarker(
   userId: string,
   biomarkerKey: string,
@@ -385,17 +407,23 @@ export async function processTrendForBiomarker(
   const points: BiomarkerReadingPoint[] = readings.map((reading) => ({
     value: reading.value,
     readingDate: reading.readingDate,
+    createdAt: reading.createdAt,
   }));
 
   const summary = buildTrendSummary(points, referenceRange);
-  const latest = readings[0]!;
-  const previous = readings.length >= 2 ? readings[1]! : null;
+  const sortedDesc = [...points].sort((left, right) =>
+    compareReadingPoints(left, right, "desc"),
+  );
+  const latestPoint = sortedDesc[0]!;
+  const previousPoint = sortedDesc[1] ?? null;
+  const latestReading = findReadingForPoint(readings, latestPoint);
+  const previousReading = previousPoint ? findReadingForPoint(readings, previousPoint) : null;
 
-  if (summary?.status) {
+  if (summary?.status && latestReading) {
     await supabaseAdmin
       .from("biomarker_readings")
       .update({ status: summary.status })
-      .eq("id", latest.id);
+      .eq("id", latestReading.id);
   }
 
   const trend = calculateTrend(points);
@@ -409,38 +437,64 @@ export async function processTrendForBiomarker(
     new_status: BiomarkerStatus | null;
   }> = [];
 
-  if (previous && summary?.status && previous.status && previous.status !== summary.status) {
+  const latestValue = summary?.latestValue ?? latestPoint.value;
+  const previousValue = summary?.previousValue ?? previousPoint?.value ?? null;
+
+  let statusChangeFired = false;
+
+  if (
+    previousReading &&
+    summary?.status &&
+    previousReading.status &&
+    previousReading.status !== summary.status
+  ) {
     alerts.push({
       user_id: userId,
       biomarker_key: biomarkerKey,
       alert_type: "status_change",
-      previous_value: previous.value,
-      new_value: latest.value,
-      previous_status: previous.status,
+      previous_value: previousValue,
+      new_value: latestValue,
+      previous_status: previousReading.status,
       new_status: summary.status,
     });
+    statusChangeFired = true;
   }
 
   if (
+    !statusChangeFired &&
     trend.deltaPct !== null &&
-    Math.abs(trend.deltaPct) >= env.LAB_TREND_DELTA_ALERT_PCT
+    Math.abs(trend.deltaPct) >= env.LAB_TREND_DELTA_ALERT_PCT &&
+    previousValue !== null
   ) {
     alerts.push({
       user_id: userId,
       biomarker_key: biomarkerKey,
       alert_type: "large_delta",
-      previous_value: previous?.value ?? null,
-      new_value: latest.value,
-      previous_status: previous?.status ?? null,
+      previous_value: previousValue,
+      new_value: latestValue,
+      previous_status: previousReading?.status ?? null,
       new_status: summary?.status ?? null,
     });
   }
 
   if (alerts.length > 0) {
-    const { error } = await supabaseAdmin.from("biomarker_alerts").insert(alerts);
+    const dedupeSince = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data: recentDuplicate } = await supabaseAdmin
+      .from("biomarker_alerts")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("biomarker_key", biomarkerKey)
+      .eq("is_read", false)
+      .eq("new_value", latestValue)
+      .gte("created_at", dedupeSince)
+      .limit(1);
 
-    if (error) {
-      throw new LabError(error.message, 500, "INTERNAL_ERROR");
+    if (!recentDuplicate || recentDuplicate.length === 0) {
+      const { error } = await supabaseAdmin.from("biomarker_alerts").insert(alerts);
+
+      if (error) {
+        throw new LabError(error.message, 500, "INTERNAL_ERROR");
+      }
     }
   }
 

@@ -6,7 +6,30 @@ export type TrendDirection = "rising" | "falling" | "stable";
 export type BiomarkerReadingPoint = {
   value: number;
   readingDate: string;
+  createdAt?: string;
 };
+
+export type ReadingSortOrder = "asc" | "desc";
+
+function createdAtMs(value: string | undefined): number {
+  return value ? new Date(value).getTime() : 0;
+}
+
+export function compareReadingPoints(
+  left: BiomarkerReadingPoint,
+  right: BiomarkerReadingPoint,
+  order: ReadingSortOrder = "desc",
+): number {
+  const dateDiff =
+    parseDate(left.readingDate).getTime() - parseDate(right.readingDate).getTime();
+
+  if (dateDiff !== 0) {
+    return order === "desc" ? -dateDiff : dateDiff;
+  }
+
+  const createdDiff = createdAtMs(left.createdAt) - createdAtMs(right.createdAt);
+  return order === "desc" ? -createdDiff : createdDiff;
+}
 
 export type TrendResult = {
   direction: TrendDirection;
@@ -72,8 +95,8 @@ export function calculateTrend(
     };
   }
 
-  const sorted = [...readings].sort(
-    (left, right) => parseDate(left.readingDate).getTime() - parseDate(right.readingDate).getTime(),
+  const sorted = [...readings].sort((left, right) =>
+    compareReadingPoints(left, right, "asc"),
   );
 
   const window = sorted.slice(-maxPoints);
@@ -194,8 +217,8 @@ export function buildTrendSummary(
     return null;
   }
 
-  const sorted = [...readings].sort(
-    (left, right) => parseDate(right.readingDate).getTime() - parseDate(left.readingDate).getTime(),
+  const sorted = [...readings].sort((left, right) =>
+    compareReadingPoints(left, right, "desc"),
   );
 
   const latest = sorted[0]!;
