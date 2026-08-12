@@ -26,6 +26,18 @@ type ApiErrorBody = {
   };
 };
 
+export function toUserFacingChatError(
+  status: number,
+  code?: string,
+  message?: string,
+): string {
+  if (status === 429 || code === "RATE_LIMIT_EXCEEDED") {
+    return "The AI is temporarily busy. Please wait a moment and try again.";
+  }
+
+  return message ?? "Failed to send message.";
+}
+
 function buildQueryString(query: ListSessionsQuery): string {
   const params = new URLSearchParams();
 
@@ -73,7 +85,7 @@ export async function getSession(sessionId: string): Promise<ConversationDetail>
 export type StreamMessageHandlers = {
   onToken: (content: string) => void;
   onDone: (payload: { messageId: string; sources: ChatSource[] }) => void;
-  onError: (message: string) => void;
+  onError: (message: string, code?: string) => void;
 };
 
 function dispatchSseEvent(event: SseEvent, handlers: StreamMessageHandlers): boolean {
@@ -90,7 +102,7 @@ function dispatchSseEvent(event: SseEvent, handlers: StreamMessageHandlers): boo
     return true;
   }
 
-  handlers.onError(event.message);
+  handlers.onError(toUserFacingChatError(500, event.code, event.message), event.code);
   return true;
 }
 
@@ -136,8 +148,11 @@ export async function streamMessage(
     }
 
     const errorBody = body as ApiErrorBody | undefined;
-    const errorMessage =
-      errorBody?.error?.message ?? `Chat stream failed: ${response.statusText}`;
+    const errorMessage = toUserFacingChatError(
+      response.status,
+      errorBody?.error?.code,
+      errorBody?.error?.message ?? `Chat stream failed: ${response.statusText}`,
+    );
 
     throw new ApiError(errorMessage, response.status, errorBody?.error?.code, body);
   }

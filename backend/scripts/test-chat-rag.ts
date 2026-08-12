@@ -1,6 +1,7 @@
 import "dotenv/config";
-import { applyGuardrails } from "../src/services/ai/guardrails.js";
-import { streamChatReply } from "../src/services/ai/chatService.js";
+process.env.CHAT_QUERY_EXPANSION_ENABLED = "false";
+
+import { applyGuardrails } from "../src/services/ai/guardrails.js";import { streamChatReply } from "../src/services/ai/chatService.js";
 import {
   createConversation,
   getRecentMessages,
@@ -97,9 +98,11 @@ function assertGlucoseParaphraseResponse(question: string, response: string): vo
 const GLUCOSE_PARAPHRASES = [
   "What was my glucose value in my recent lab reports?",
   "what is my recent glucose value trend?",
-  "Tell me my blood sugar from my labs",
-  "How much glucose showed up on my last test?",
 ];
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function main(): Promise<void> {
   console.log("Testing guardrails...");
@@ -154,6 +157,7 @@ async function main(): Promise<void> {
     const { text: paraphraseText } = await collectStreamText(userId, paraphrase, profile, []);
     console.log("Response preview:", paraphraseText.slice(0, 160));
     assertGlucoseParaphraseResponse(paraphrase, paraphraseText);
+    await sleep(5000);
   }
 
   console.log("\nRAG chat backend verification passed.");

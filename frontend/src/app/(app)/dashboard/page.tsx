@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Settings, UserRound } from "lucide-react";
+import { DashboardLabSummary } from "@/components/lab/dashboard-lab-summary";
 import {
   Card,
   CardContent,
@@ -95,21 +96,7 @@ export default async function DashboardPage() {
         </Card>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {["Records", "Biomarkers", "AI Insights"].map((title) => (
-          <Card key={title} className="border-neutral-100 shadow-none">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold text-neutral-700">
-                {title}
-              </CardTitle>
-              <CardDescription className="text-neutral-400">Coming soon</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold tabular-nums text-neutral-300">—</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <DashboardLabSummary />
     </div>
   );
 }

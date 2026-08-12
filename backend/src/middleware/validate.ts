@@ -31,3 +31,17 @@ export function validateQuery<T>(schema: ZodType<T>) {
     next();
   };
 }
+
+export function validateParams<T>(schema: ZodType<T>) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const parsed = schema.safeParse(req.params);
+
+    if (!parsed.success) {
+      const message = parsed.error.issues[0]?.message ?? "Validation failed";
+      sendError(res, 400, message, "VALIDATION_ERROR");
+      return;
+    }
+
+    next();
+  };
+}

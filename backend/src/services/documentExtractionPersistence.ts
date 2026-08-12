@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../config/supabase.js";
 import type { DocumentClassification } from "../schemas/ai/documentClassificationSchema.js";
+import { addTrendJob } from "../queues/producers.js";
 import {
   DocumentError,
   type DocumentExtractionMetadata,
@@ -144,6 +145,22 @@ async function persistLabReport(
 
   if (insertError) {
     throw new DocumentError(insertError.message, 500, "INTERNAL_ERROR");
+  }
+
+  const uniqueKeys = [...new Set(readings.map((reading) => reading.biomarker_key))];
+
+  for (const biomarkerKey of uniqueKeys) {
+    try {
+      await addTrendJob({
+        userId: document.user_id,
+        biomarkerKey,
+      });
+    } catch (queueError) {
+      console.error(
+        `Failed to enqueue trend job for ${biomarkerKey} (document ${document.id}):`,
+        queueError,
+      );
+    }
   }
 }
 

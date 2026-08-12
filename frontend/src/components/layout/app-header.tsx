@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { LabAlertsBell } from "@/components/lab/lab-alerts-bell";
 import type { AuthUser } from "@/types/auth";
 import { SearchBar } from "@/components/health/search-bar";
 import { AppSidebarNav } from "./app-sidebar-nav";
@@ -84,7 +85,8 @@ export function AppHeader({ user }: AppHeaderProps) {
         ) : null}
 
         {user ? (
-          <div className="shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
+            <LabAlertsBell />
             <UserAccountMenu user={user} />
           </div>
         ) : null}

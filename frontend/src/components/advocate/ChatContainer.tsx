@@ -35,11 +35,14 @@ export function ChatContainer({ className }: { className?: string }) {
   const isStreaming = useChatStore((state) => state.isStreaming);
   const streamingText = useChatStore((state) => state.streamingText);
   const error = useChatStore((state) => state.error);
+  const errorCode = useChatStore((state) => state.errorCode);
+  const lastFailedMessage = useChatStore((state) => state.lastFailedMessage);
   const addUserMessage = useChatStore((state) => state.addUserMessage);
   const startStreaming = useChatStore((state) => state.startStreaming);
   const appendToken = useChatStore((state) => state.appendToken);
   const finalizeMessage = useChatStore((state) => state.finalizeMessage);
   const setError = useChatStore((state) => state.setError);
+  const clearError = useChatStore((state) => state.clearError);
   const setActiveSession = useChatStore((state) => state.setActiveSession);
 
   const { isLoading: isLoadingSession } = useChatSession(activeSessionId);
@@ -76,7 +79,7 @@ export function ChatContainer({ className }: { className?: string }) {
 
   const handleSend = useCallback(
     async (text: string) => {
-      setError(null);
+      clearError();
       shouldAutoScrollRef.current = true;
 
       let sessionId = activeSessionId;
@@ -100,8 +103,8 @@ export function ChatContainer({ className }: { className?: string }) {
               queryKey: chatSessionQueryKey(sessionId),
             });
           },
-          onError: (message) => {
-            setError(message);
+          onError: (message, code) => {
+            setError(message, code, text);
           },
         });
 
@@ -116,13 +119,15 @@ export function ChatContainer({ className }: { className?: string }) {
               ? sendError.message
               : "Failed to send message.";
 
-        setError(message);
+        const code = sendError instanceof ApiError ? sendError.code : undefined;
+        setError(message, code, text);
       }
     },
     [
       activeSessionId,
       addUserMessage,
       appendToken,
+      clearError,
       createSessionMutation,
       finalizeMessage,
       queryClient,
@@ -182,8 +187,29 @@ export function ChatContainer({ className }: { className?: string }) {
         </div>
 
         {error ? (
-          <div className="shrink-0 border-t border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700 sm:px-6">
-            {error}
+          <div
+            className={cn(
+              "shrink-0 border-t px-4 py-3 text-sm sm:px-6",
+              errorCode === "RATE_LIMIT_EXCEEDED"
+                ? "border-amber-100 bg-amber-50 text-amber-900"
+                : "border-red-100 bg-red-50 text-red-700",
+            )}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p>{error}</p>
+              {lastFailedMessage ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="shrink-0"
+                  disabled={isStreaming || createSessionMutation.isPending}
+                  onClick={() => void handleSend(lastFailedMessage)}
+                >
+                  Try again
+                </Button>
+              ) : null}
+            </div>
           </div>
         ) : null}
 

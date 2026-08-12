@@ -7,6 +7,8 @@ type ChatState = {
   isStreaming: boolean;
   streamingText: string;
   error: string | null;
+  errorCode: string | null;
+  lastFailedMessage: string | null;
 
   setActiveSession: (id: string | null) => void;
   setMessages: (messages: UiChatMessage[]) => void;
@@ -14,7 +16,8 @@ type ChatState = {
   startStreaming: () => void;
   appendToken: (token: string) => void;
   finalizeMessage: (messageId: string, sources: ChatSource[]) => void;
-  setError: (message: string | null) => void;
+  setError: (message: string, code?: string, failedMessage?: string) => void;
+  clearError: () => void;
   reset: () => void;
 };
 
@@ -24,6 +27,8 @@ const initialState = {
   isStreaming: false,
   streamingText: "",
   error: null as string | null,
+  errorCode: null as string | null,
+  lastFailedMessage: null as string | null,
 };
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -31,7 +36,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setActiveSession: (id) => set({ activeSessionId: id }),
 
-  setMessages: (messages) => set({ messages, streamingText: "", isStreaming: false, error: null }),
+  setMessages: (messages) =>
+    set({
+      messages,
+      streamingText: "",
+      isStreaming: false,
+      error: null,
+      errorCode: null,
+      lastFailedMessage: null,
+    }),
 
   addUserMessage: (content) => {
     const sessionId = get().activeSessionId;
@@ -52,10 +65,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => ({
       messages: [...state.messages, userMessage],
       error: null,
+      errorCode: null,
+      lastFailedMessage: null,
     }));
   },
 
-  startStreaming: () => set({ isStreaming: true, streamingText: "", error: null }),
+  startStreaming: () =>
+    set({ isStreaming: true, streamingText: "", error: null, errorCode: null, lastFailedMessage: null }),
 
   appendToken: (token) =>
     set((state) => ({
@@ -86,11 +102,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
   },
 
-  setError: (message) =>
+  setError: (message, code, failedMessage) =>
     set({
       error: message,
+      errorCode: code ?? null,
+      lastFailedMessage: failedMessage ?? get().lastFailedMessage,
       isStreaming: false,
       streamingText: "",
+    }),
+
+  clearError: () =>
+    set({
+      error: null,
+      errorCode: null,
+      lastFailedMessage: null,
     }),
 
   reset: () => set(initialState),

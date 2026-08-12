@@ -66,6 +66,7 @@ export type SseDoneEvent = {
 export type SseErrorEvent = {
   type: "error";
   message: string;
+  code?: string;
 };
 
 export type SseEvent = SseTokenEvent | SseDoneEvent | SseErrorEvent;
