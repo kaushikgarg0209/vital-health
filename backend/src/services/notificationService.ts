@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../config/supabase.js";
 import type { Notification, NotificationRow, NotificationType } from "../types/family.js";
+import { isFamilyNotificationActive } from "./family/familyNotificationService.js";
 
 export class NotificationError extends Error {
   constructor(
@@ -65,10 +66,40 @@ export async function listUnreadNotifications(userId: string): Promise<Notificat
     throw new NotificationError(error.message, 500, "INTERNAL_ERROR");
   }
 
-  return (data ?? []).map((row) => mapNotification(row as NotificationRow));
+  const rows = (data ?? []) as NotificationRow[];
+  const activeRows: NotificationRow[] = [];
+
+  for (const row of rows) {
+    if (await isFamilyNotificationActive(userId, row)) {
+      activeRows.push(row);
+    }
+  }
+
+  return activeRows.map((row) => mapNotification(row));
 }
 
 export async function markNotificationRead(notificationId: string, userId: string): Promise<void> {
+  const { data: existing, error: loadError } = await supabaseAdmin
+    .from("notifications")
+    .select("*")
+    .eq("id", notificationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (loadError) {
+    throw new NotificationError(loadError.message, 500, "INTERNAL_ERROR");
+  }
+
+  if (!existing) {
+    throw new NotificationError("Notification not found", 404, "NOTIFICATION_NOT_FOUND");
+  }
+
+  const row = existing as NotificationRow;
+
+  if (!(await isFamilyNotificationActive(userId, row))) {
+    throw new NotificationError("Notification not found", 404, "NOTIFICATION_NOT_FOUND");
+  }
+
   const { data, error } = await supabaseAdmin
     .from("notifications")
     .update({ is_read: true })

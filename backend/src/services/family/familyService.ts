@@ -6,6 +6,7 @@ import type {
   FamilyMembershipDetail,
   FamilyMembershipRow,
 } from "../../types/family.js";
+import { deleteStaleFamilyNotificationsForMembership } from "./familyNotificationService.js";
 
 export class FamilyError extends Error {
   constructor(
@@ -258,4 +259,11 @@ export async function revokeMembership(
   if (updateError) {
     throw new FamilyError(updateError.message, 500, "INTERNAL_ERROR");
   }
+
+  await deleteStaleFamilyNotificationsForMembership({
+    viewerUserId: row.viewer_user_id,
+    subjectUserId: row.subject_user_id,
+    groupId: row.group_id,
+    membershipId: row.id,
+  });
 }
