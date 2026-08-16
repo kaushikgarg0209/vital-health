@@ -34,6 +34,9 @@ function mapProfile(row: ProfileRow): Profile {
     known_conditions: row.known_conditions ?? [],
     allergies: row.allergies ?? [],
     current_medications: row.current_medications ?? [],
+    emergency_contact_name: row.emergency_contact_name ?? null,
+    emergency_contact_phone: row.emergency_contact_phone ?? null,
+    primary_care_doctor: row.primary_care_doctor ?? null,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -68,6 +71,15 @@ function mapUpdateInput(input: UpdateProfileInput): Record<string, unknown> {
   }
   if (input.currentMedications !== undefined) {
     payload.current_medications = input.currentMedications;
+  }
+  if (input.emergencyContactName !== undefined) {
+    payload.emergency_contact_name = input.emergencyContactName;
+  }
+  if (input.emergencyContactPhone !== undefined) {
+    payload.emergency_contact_phone = input.emergencyContactPhone;
+  }
+  if (input.primaryCareDoctor !== undefined) {
+    payload.primary_care_doctor = input.primaryCareDoctor;
   }
 
   return payload;

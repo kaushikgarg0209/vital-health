@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "../../config/supabase.js";
 import { env } from "../../config/env.js";
 import { cacheDel, insightCacheKey } from "../cache/cacheService.js";
+import { notifyFamilyCaregivers } from "../family/familyAlertService.js";
 import { getProfileByUserId } from "../profileService.js";
 import type { BiomarkerStatus } from "../../utils/extractionValues.js";
 import {
@@ -495,6 +496,19 @@ export async function processTrendForBiomarker(
       if (error) {
         throw new LabError(error.message, 500, "INTERNAL_ERROR");
       }
+
+      const biomarkerName =
+        latestReading?.biomarkerName ??
+        biomarkerKey.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+
+      await notifyFamilyCaregivers({
+        subjectUserId: userId,
+        biomarkerKey,
+        biomarkerName,
+        alertType: alerts[0]!.alert_type,
+        newValue: latestValue,
+        newStatus: alerts[0]!.new_status,
+      });
     }
   }
 

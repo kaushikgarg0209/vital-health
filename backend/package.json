@@ -14,7 +14,8 @@
     "backfill:embeddings": "tsx scripts/backfill-embeddings.ts",
     "test:chat": "tsx scripts/test-chat-rag.ts",
     "test:lab": "tsx scripts/test-trend-analysis.ts && tsx scripts/test-lab-trends.ts",
-    "test": "npm run test:gemini && npm run test:processing && npm run test:embeddings && npm run test:lab && npm run test:chat"
+    "test:family": "tsx scripts/test-family.ts",
+    "test": "npm run test:gemini && npm run test:processing && npm run test:embeddings && npm run test:lab && npm run test:chat && npm run test:family"
   },
   "keywords": [],
   "author": "",

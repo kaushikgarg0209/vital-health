@@ -34,6 +34,9 @@ export const updateProfileSchema = z.object({
   knownConditions: stringArraySchema.optional(),
   allergies: stringArraySchema.optional(),
   currentMedications: stringArraySchema.optional(),
+  emergencyContactName: z.string().trim().min(1).max(200).nullable().optional(),
+  emergencyContactPhone: z.string().trim().min(5).max(30).nullable().optional(),
+  primaryCareDoctor: z.string().trim().min(1).max(200).nullable().optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
