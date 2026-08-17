@@ -12,6 +12,9 @@ export type ProfileRow = {
   known_conditions: string[] | null;
   allergies: string[] | null;
   current_medications: string[] | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  primary_care_doctor: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -28,6 +31,9 @@ export type Profile = {
   known_conditions: string[];
   allergies: string[];
   current_medications: string[];
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  primary_care_doctor: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -44,6 +50,9 @@ export type ProfileResponse = {
   knownConditions: string[];
   allergies: string[];
   currentMedications: string[];
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  primaryCareDoctor: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -67,6 +76,9 @@ export function toProfileResponse(profile: Profile): ProfileResponse {
     knownConditions: profile.known_conditions,
     allergies: profile.allergies,
     currentMedications: profile.current_medications,
+    emergencyContactName: profile.emergency_contact_name,
+    emergencyContactPhone: profile.emergency_contact_phone,
+    primaryCareDoctor: profile.primary_care_doctor,
     createdAt: profile.created_at,
     updatedAt: profile.updated_at,
   };

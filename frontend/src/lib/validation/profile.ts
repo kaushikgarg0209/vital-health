@@ -41,9 +41,16 @@ export const profileStep3Schema = z.object({
   currentMedications: z.array(z.string()),
 });
 
+export const profileEmergencySchema = z.object({
+  emergencyContactName: z.string(),
+  emergencyContactPhone: z.string(),
+  primaryCareDoctor: z.string(),
+});
+
 export const profileFormSchema = profileStep1Schema
   .extend(profileStep2Schema.shape)
-  .extend(profileStep3Schema.shape);
+  .extend(profileStep3Schema.shape)
+  .extend(profileEmergencySchema.shape);
 
 export type ProfileStep1Values = z.infer<typeof profileStep1Schema>;
 export type ProfileStep2Values = z.infer<typeof profileStep2Schema>;

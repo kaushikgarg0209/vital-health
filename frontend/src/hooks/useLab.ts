@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createManualReading,
@@ -49,19 +48,11 @@ export function useBiomarkerInsight(biomarkerKey: string, enabled = true) {
 }
 
 export function useLabAlerts() {
-  const setUnreadCount = useNotificationStore((state) => state.setUnreadCount);
-
-  const query = useQuery({
+  return useQuery({
     queryKey: labAlertsQueryKey,
     queryFn: listLabAlerts,
     refetchInterval: 60_000,
   });
-
-  useEffect(() => {
-    setUnreadCount(query.data?.length ?? 0);
-  }, [query.data?.length, setUnreadCount]);
-
-  return query;
 }
 
 export function useCreateManualReading() {
