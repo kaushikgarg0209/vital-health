@@ -61,6 +61,7 @@ export type FamilyMembershipDetail = {
   status: MembershipStatus;
   acceptedAt: string | null;
   createdAt: string;
+  invitationToken?: string | null;
 };
 
 export type FamilyGroupDetail = {

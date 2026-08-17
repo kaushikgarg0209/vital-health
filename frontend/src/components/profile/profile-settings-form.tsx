@@ -216,6 +216,47 @@ export function ProfileSettingsForm({ initialValues }: ProfileSettingsFormProps)
         </CardContent>
       </Card>
 
+      <Card className="border-neutral-100 shadow-sm shadow-neutral-900/5">
+        <CardHeader className="border-b border-neutral-100">
+          <CardTitle className="text-lg font-semibold text-neutral-800">
+            Emergency & care team
+          </CardTitle>
+          <CardDescription className="text-neutral-400">
+            Shown on your emergency brief when caregivers need critical information.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5 pt-6">
+          <ValidatedField
+            id="emergencyContactName"
+            label="Emergency contact name"
+            placeholder="Jane Doe"
+            value={values.emergencyContactName}
+            error={visibleErrors.emergencyContactName}
+            onValueChange={(value) => setField("emergencyContactName", value)}
+            onBlur={() => markTouched("emergencyContactName")}
+          />
+          <ValidatedField
+            id="emergencyContactPhone"
+            label="Emergency contact phone"
+            type="tel"
+            placeholder="+1 555 0100"
+            value={values.emergencyContactPhone}
+            error={visibleErrors.emergencyContactPhone}
+            onValueChange={(value) => setField("emergencyContactPhone", value)}
+            onBlur={() => markTouched("emergencyContactPhone")}
+          />
+          <ValidatedField
+            id="primaryCareDoctor"
+            label="Primary care doctor"
+            placeholder="Dr. Smith"
+            value={values.primaryCareDoctor}
+            error={visibleErrors.primaryCareDoctor}
+            onValueChange={(value) => setField("primaryCareDoctor", value)}
+            onBlur={() => markTouched("primaryCareDoctor")}
+          />
+        </CardContent>
+      </Card>
+
       <div className="flex justify-end">
         <Button
           type="submit"

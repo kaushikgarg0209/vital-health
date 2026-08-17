@@ -11,6 +11,9 @@ export type Profile = {
   knownConditions: string[];
   allergies: string[];
   currentMedications: string[];
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  primaryCareDoctor: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -25,6 +28,9 @@ export type UpdateProfileInput = {
   knownConditions?: string[];
   allergies?: string[];
   currentMedications?: string[];
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  primaryCareDoctor?: string | null;
 };
 
 export type ProfileFormValues = {
@@ -37,6 +43,9 @@ export type ProfileFormValues = {
   knownConditions: string[];
   allergies: string[];
   currentMedications: string[];
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  primaryCareDoctor: string;
 };
 
 export function profileToFormValues(profile: Profile | null, fallbackName = ""): ProfileFormValues {
@@ -50,6 +59,9 @@ export function profileToFormValues(profile: Profile | null, fallbackName = ""):
     knownConditions: profile?.knownConditions ?? [],
     allergies: profile?.allergies ?? [],
     currentMedications: profile?.currentMedications ?? [],
+    emergencyContactName: profile?.emergencyContactName ?? "",
+    emergencyContactPhone: profile?.emergencyContactPhone ?? "",
+    primaryCareDoctor: profile?.primaryCareDoctor ?? "",
   };
 }
 
@@ -64,5 +76,8 @@ export function formValuesToUpdateInput(values: ProfileFormValues): UpdateProfil
     knownConditions: values.knownConditions,
     allergies: values.allergies,
     currentMedications: values.currentMedications,
+    emergencyContactName: values.emergencyContactName.trim() || null,
+    emergencyContactPhone: values.emergencyContactPhone.trim() || null,
+    primaryCareDoctor: values.primaryCareDoctor.trim() || null,
   };
 }

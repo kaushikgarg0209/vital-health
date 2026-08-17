@@ -5,6 +5,7 @@ import { buildEmergencyBrief } from "../services/family/emergencyBriefService.js
 import {
   FamilyError,
   createGroup,
+  deleteGroup,
   getGroupDetail,
   listGroupsForUser,
   revokeMembership,
@@ -66,6 +67,16 @@ export async function getGroupHandler(req: Request, res: Response): Promise<void
     sendSuccess(res, 200, data);
   } catch (error) {
     handleFamilyError(res, error, "Get family group");
+  }
+}
+
+export async function deleteGroupHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const groupId = getRouteParam(req.params.groupId);
+    await deleteGroup(groupId, req.user!.id);
+    sendSuccess(res, 200, { deleted: true });
+  } catch (error) {
+    handleFamilyError(res, error, "Delete family group");
   }
 }
 

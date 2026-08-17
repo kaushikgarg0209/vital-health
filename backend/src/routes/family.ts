@@ -4,6 +4,7 @@ import {
   createGroupHandler,
   createInvitationHandler,
   declineInvitationHandler,
+  deleteGroupHandler,
   getCaregiverSummaryHandler,
   getEmergencyBriefHandler,
   getGroupHandler,
@@ -35,6 +36,13 @@ router.get(
   requireAuth,
   validateParams(groupIdParamSchema),
   getGroupHandler,
+);
+
+router.delete(
+  "/groups/:groupId",
+  requireAuth,
+  validateParams(groupIdParamSchema),
+  deleteGroupHandler,
 );
 
 router.post(

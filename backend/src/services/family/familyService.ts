@@ -40,7 +40,13 @@ async function fetchProfileNames(userIds: string[]): Promise<Map<string, string>
 function mapMembershipDetail(
   row: FamilyMembershipRow,
   names: Map<string, string>,
+  requesterId?: string,
 ): FamilyMembershipDetail {
+  const includeToken =
+    requesterId !== undefined &&
+    row.status === "pending" &&
+    row.viewer_user_id === requesterId;
+
   return {
     id: row.id,
     subjectUserId: row.subject_user_id,
@@ -52,6 +58,7 @@ function mapMembershipDetail(
     status: row.status,
     acceptedAt: row.accepted_at,
     createdAt: row.created_at,
+    invitationToken: includeToken ? row.invitation_token : null,
   };
 }
 
@@ -217,7 +224,7 @@ export async function getGroupDetail(groupId: string, userId: string): Promise<F
     id: groupRow.id,
     name: groupRow.name,
     createdBy: groupRow.created_by,
-    memberships: rows.map((row) => mapMembershipDetail(row, names)),
+    memberships: rows.map((row) => mapMembershipDetail(row, names, userId)),
     createdAt: groupRow.created_at,
   };
 }
@@ -246,8 +253,9 @@ export async function revokeMembership(
 
   const isSubject = row.subject_user_id === requesterId;
   const isCreator = row.family_groups.created_by === requesterId;
+  const isViewer = row.viewer_user_id === requesterId;
 
-  if (!isSubject && !isCreator) {
+  if (!isSubject && !isCreator && !isViewer) {
     throw new FamilyError("Not authorized to revoke this membership", 403, "FORBIDDEN");
   }
 
@@ -266,4 +274,51 @@ export async function revokeMembership(
     groupId: row.group_id,
     membershipId: row.id,
   });
+}
+
+export async function deleteGroup(groupId: string, requesterId: string): Promise<void> {
+  const { data: group, error: groupError } = await supabaseAdmin
+    .from("family_groups")
+    .select("created_by")
+    .eq("id", groupId)
+    .maybeSingle();
+
+  if (groupError) {
+    throw new FamilyError(groupError.message, 500, "INTERNAL_ERROR");
+  }
+
+  if (!group) {
+    throw new FamilyError("Group not found", 404, "GROUP_NOT_FOUND");
+  }
+
+  if (group.created_by !== requesterId) {
+    throw new FamilyError("Not authorized to delete this group", 403, "FORBIDDEN");
+  }
+
+  const { data: memberships, error: membershipsError } = await supabaseAdmin
+    .from("family_memberships")
+    .select("id, viewer_user_id, subject_user_id")
+    .eq("group_id", groupId);
+
+  if (membershipsError) {
+    throw new FamilyError(membershipsError.message, 500, "INTERNAL_ERROR");
+  }
+
+  for (const membership of memberships ?? []) {
+    await deleteStaleFamilyNotificationsForMembership({
+      viewerUserId: (membership.viewer_user_id as string | null) ?? null,
+      subjectUserId: membership.subject_user_id as string,
+      groupId,
+      membershipId: membership.id as string,
+    });
+  }
+
+  const { error: deleteError } = await supabaseAdmin
+    .from("family_groups")
+    .delete()
+    .eq("id", groupId);
+
+  if (deleteError) {
+    throw new FamilyError(deleteError.message, 500, "INTERNAL_ERROR");
+  }
 }

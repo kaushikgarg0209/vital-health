@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../../config/supabase.js";
 import type { PermissionLevel } from "../../types/family.js";
+import { getProfileByUserId } from "../profileService.js";
 import { listUnreadAlerts, listTrackedBiomarkers } from "../lab/labService.js";
 import { FamilyError } from "./familyService.js";
 
@@ -13,6 +14,7 @@ export type CaregiverSummary = {
     dosage: string | null;
     frequency: string | null;
   }>;
+  currentMedications: string[];
   lastDocumentDate: string | null;
 };
 
@@ -28,9 +30,10 @@ export async function buildCaregiverSummary(
     );
   }
 
-  const [biomarkers, alerts] = await Promise.all([
+  const [biomarkers, alerts, profile] = await Promise.all([
     listTrackedBiomarkers(subjectUserId),
     listUnreadAlerts(subjectUserId),
+    getProfileByUserId(subjectUserId),
   ]);
 
   const { data: prescriptions, error: rxError } = await supabaseAdmin
@@ -44,16 +47,31 @@ export async function buildCaregiverSummary(
     throw new FamilyError(rxError.message, 500, "INTERNAL_ERROR");
   }
 
-  const { data: lastDocument, error: docError } = await supabaseAdmin
-    .from("documents")
-    .select("document_date")
-    .eq("user_id", subjectUserId)
-    .order("document_date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const activePrescriptions = (prescriptions ?? []).map((row) => ({
+    medicationName: row.medication_name as string,
+    dosage: (row.dosage as string | null) ?? null,
+    frequency: (row.frequency as string | null) ?? null,
+  }));
 
-  if (docError) {
-    throw new FamilyError(docError.message, 500, "INTERNAL_ERROR");
+  const currentMedications =
+    activePrescriptions.length > 0 ? [] : (profile?.current_medications ?? []);
+
+  let lastDocumentDate: string | null = null;
+
+  if (permissionLevel === "full") {
+    const { data: lastDocument, error: docError } = await supabaseAdmin
+      .from("documents")
+      .select("document_date")
+      .eq("user_id", subjectUserId)
+      .order("document_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (docError) {
+      throw new FamilyError(docError.message, 500, "INTERNAL_ERROR");
+    }
+
+    lastDocumentDate = (lastDocument?.document_date as string | null) ?? null;
   }
 
   return {
@@ -61,11 +79,8 @@ export async function buildCaregiverSummary(
     permissionLevel,
     biomarkers,
     alerts,
-    activePrescriptions: (prescriptions ?? []).map((row) => ({
-      medicationName: row.medication_name as string,
-      dosage: (row.dosage as string | null) ?? null,
-      frequency: (row.frequency as string | null) ?? null,
-    })),
-    lastDocumentDate: (lastDocument?.document_date as string | null) ?? null,
+    activePrescriptions,
+    currentMedications,
+    lastDocumentDate,
   };
 }
