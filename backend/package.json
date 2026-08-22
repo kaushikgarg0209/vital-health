@@ -15,7 +15,10 @@
     "test:chat": "tsx scripts/test-chat-rag.ts",
     "test:lab": "tsx scripts/test-trend-analysis.ts && tsx scripts/test-lab-trends.ts",
     "test:family": "tsx scripts/test-family.ts",
-    "test": "npm run test:gemini && npm run test:processing && npm run test:embeddings && npm run test:lab && npm run test:chat && npm run test:family"
+    "test:nutrition": "tsx scripts/test-nutrition-calculator.ts",
+    "test:wellness": "tsx scripts/test-wellness-validation.ts",
+    "test:json-extraction": "tsx scripts/test-json-extraction.ts",
+    "test": "npm run test:gemini && npm run test:processing && npm run test:embeddings && npm run test:lab && npm run test:chat && npm run test:family && npm run test:nutrition"
   },
   "keywords": [],
   "author": "",

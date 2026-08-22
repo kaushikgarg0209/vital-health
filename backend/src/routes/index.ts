@@ -6,6 +6,7 @@ import familyRouter from "./family.js";
 import healthRouter from "./health.js";
 import labRouter from "./lab.js";
 import profileRouter from "./profile.js";
+import wellnessRouter from "./wellness.js";
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/documents", documentsRouter);
 router.use("/chat", chatRouter);
 router.use("/lab", labRouter);
 router.use("/family", familyRouter);
+router.use("/wellness", wellnessRouter);
 
 export default router;

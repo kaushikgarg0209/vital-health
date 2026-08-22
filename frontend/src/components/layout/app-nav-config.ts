@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
+  Dumbbell,
   FileText,
   FlaskConical,
   MessageSquare,
@@ -18,6 +19,7 @@ export const APP_NAV_ITEMS: AppNavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: Activity },
   { href: "/records", label: "Records", icon: FileText },
   { href: "/lab", label: "Lab Trends", icon: FlaskConical },
+  { href: "/fitness", label: "Fitness", icon: Dumbbell },
   { href: "/advocate", label: "AI Advocate", icon: MessageSquare },
   { href: "/family", label: "Family", icon: Users },
   { href: "/settings/profile", label: "Settings", icon: Settings },

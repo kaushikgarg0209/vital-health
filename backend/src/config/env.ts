@@ -32,6 +32,8 @@ const envSchema = z
     LAB_INSIGHT_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(86400),
     LAB_TREND_DELTA_ALERT_PCT: z.coerce.number().positive().default(15),
     GEMINI_INSIGHT_MODEL: z.string().min(1).default("gemini-3.1-flash-lite"),
+    GEMINI_FITNESS_MODEL: z.string().min(1).default("gemini-3.1-flash-lite"),
+    GEMINI_FITNESS_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().default(16384),
   })
   .transform((data) => {
     const baseUrl =

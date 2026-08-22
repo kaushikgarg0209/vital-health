@@ -15,6 +15,10 @@ export class GeminiError extends Error {
   }
 }
 
+export type GenerateJsonOptions = {
+  maxOutputTokens?: number;
+};
+
 function toContentParts(parts: DocumentInputPart[]): Part[] {
   return parts.map((part) => ({
     inlineData: {
@@ -34,15 +38,107 @@ function extractResponseText(response: { text?: string }): string {
   return text;
 }
 
-function parseJsonResponse(raw: string): unknown {
-  try {
-    return JSON.parse(raw) as unknown;
-  } catch (error) {
-    throw new GeminiError("Gemini response was not valid JSON", error);
+function stripMarkdownFences(raw: string): string {
+  const fenced = raw.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  if (fenced?.[1]) {
+    return fenced[1].trim();
   }
+
+  return raw.trim();
 }
 
-async function callGeminiJson(model: string, contents: Part[], prompt: string): Promise<string> {
+function extractBalancedJsonObject(raw: string): string | null {
+  const start = raw.indexOf("{");
+  if (start === -1) {
+    return null;
+  }
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < raw.length; index += 1) {
+    const char = raw[index];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return raw.slice(start, index + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
+export function extractJsonPayload(raw: string): string {
+  const trimmed = stripMarkdownFences(raw);
+  const extracted = extractBalancedJsonObject(trimmed);
+  return extracted ?? trimmed;
+}
+
+function uniqueCandidates(candidates: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const candidate of candidates) {
+    const normalized = candidate.trim();
+    if (!normalized || seen.has(normalized)) {
+      continue;
+    }
+    seen.add(normalized);
+    result.push(normalized);
+  }
+
+  return result;
+}
+
+export function parseJsonResponse(raw: string): unknown {
+  const candidates = uniqueCandidates([raw, extractJsonPayload(raw)]);
+  let lastError: unknown;
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate) as unknown;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw new GeminiError("Gemini response was not valid JSON", lastError);
+}
+
+async function callGeminiJson(
+  model: string,
+  contents: Part[],
+  prompt: string,
+  options?: GenerateJsonOptions,
+): Promise<string> {
   try {
     const response = await withGeminiRetry(() =>
       geminiClient.models.generateContent({
@@ -51,6 +147,7 @@ async function callGeminiJson(model: string, contents: Part[], prompt: string): 
         config: {
           responseMimeType: "application/json",
           temperature: 0.1,
+          ...(options?.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {}),
         },
       }),
     );
@@ -74,10 +171,11 @@ export async function generateJson<T>(
   prompt: string,
   schema: ZodType<T>,
   schemaDescription: string,
+  options?: GenerateJsonOptions,
 ): Promise<T> {
   const contents = toContentParts(parts);
 
-  const firstRaw = await callGeminiJson(model, contents, prompt);
+  const firstRaw = await callGeminiJson(model, contents, prompt, options);
   const firstParsed = schema.safeParse(parseJsonResponse(firstRaw));
 
   if (firstParsed.success) {
@@ -89,7 +187,12 @@ export async function generateJson<T>(
     firstParsed.error.issues[0]?.message ?? "Schema validation failed",
   );
 
-  const retryRaw = await callGeminiJson(model, contents, `${prompt}\n\n${correctionPrompt}`);
+  const retryRaw = await callGeminiJson(
+    model,
+    contents,
+    `${prompt}\n\n${correctionPrompt}`,
+    options,
+  );
   const retryParsed = schema.safeParse(parseJsonResponse(retryRaw));
 
   if (retryParsed.success) {
