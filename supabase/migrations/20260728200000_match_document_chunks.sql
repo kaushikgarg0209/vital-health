@@ -6,7 +6,7 @@
 -- gibberish still matches the only embedded document in a small corpus.
 
 CREATE OR REPLACE FUNCTION public.match_document_chunks(
-  query_embedding vector(768),
+  query_embedding extensions.vector(768),
   match_user_id uuid,
   match_count int DEFAULT 8,
   min_similarity float DEFAULT 0.62
@@ -20,6 +20,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 STABLE
+SET search_path = public, extensions
 AS $$
   SELECT
     dc.id,
@@ -38,5 +39,5 @@ $$;
 COMMENT ON FUNCTION public.match_document_chunks IS
   'Cosine similarity search over document_chunks with minimum score threshold';
 
-GRANT EXECUTE ON FUNCTION public.match_document_chunks(vector(768), uuid, int, float)
+GRANT EXECUTE ON FUNCTION public.match_document_chunks(extensions.vector(768), uuid, int, float)
   TO authenticated, service_role;

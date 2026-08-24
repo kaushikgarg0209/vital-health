@@ -116,7 +116,7 @@ CREATE TABLE public.document_chunks (
   chunk_index  INTEGER NOT NULL,
   content      TEXT NOT NULL,
   content_hash TEXT NOT NULL,
-  embedding    vector(768),
+  embedding    extensions.vector(768),
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
   CONSTRAINT document_chunks_unique_index UNIQUE (document_id, chunk_index)
@@ -267,7 +267,7 @@ CREATE INDEX idx_chunks_user ON public.document_chunks (user_id);
 CREATE INDEX idx_chunks_document ON public.document_chunks (document_id);
 CREATE INDEX idx_chunks_content_hash ON public.document_chunks (content_hash);
 CREATE INDEX idx_chunks_embedding ON public.document_chunks
-  USING ivfflat (embedding vector_cosine_ops)
+  USING ivfflat (embedding extensions.vector_cosine_ops)
   WITH (lists = 100);
 
 CREATE INDEX idx_bills_user_status ON public.medical_bills (user_id, payment_status);
