@@ -26,14 +26,14 @@ export function MarketingCtaButtons({ user, variant }: MarketingCtaButtonsProps)
             <LayoutDashboard className="size-4" />
           </Link>
           <Link
-            href="/#features"
+            href="/#capabilities"
             className={buttonVariants({
               variant: "outline",
               size: "lg",
               className: "h-11 border-neutral-200 bg-white px-6 text-base",
             })}
           >
-            Explore features
+            Explore capabilities
           </Link>
         </div>
       );

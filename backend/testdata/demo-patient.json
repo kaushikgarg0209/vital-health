@@ -1,0 +1,512 @@
+{
+  "patient": {
+    "name": "Alex Morgan",
+    "dob": "1988-06-15",
+    "sex": "Male",
+    "mrn": "VHL-DEMO-8842",
+    "address": "742 Wellness Lane, Apt 4B, Portland, OR 97201",
+    "phone": "(503) 555-0142"
+  },
+  "providers": {
+    "orderingPhysician": "Dr. Sarah Chen, MD",
+    "specialty": "Internal Medicine",
+    "clinic": "Harbor Internal Medicine Associates",
+    "clinicAddress": "1200 Medical Center Drive, Suite 300, Portland, OR 97202",
+    "clinicPhone": "(503) 555-8800",
+    "npi": "1234567890",
+    "labName": "Meridian Clinical Laboratories",
+    "labAddress": "4500 Diagnostics Parkway, Portland, OR 97209",
+    "labDirector": "Robert Hayes, MD, FCAP",
+    "pharmacyName": "Harbor Health Pharmacy",
+    "pharmacyAddress": "890 Pharmacy Row, Portland, OR 97204",
+    "pharmacyPhone": "(503) 555-3310"
+  },
+  "labReports": {
+    "baseline": {
+      "reportDate": "2025-02-14",
+      "collectionDate": "2025-02-14",
+      "collectionTime": "07:42 AM",
+      "reportTime": "02:18 PM",
+      "fasting": true,
+      "accessionNumber": "MCL-2025-02140842",
+      "specimenId": "SP-8842-FEB14-A",
+      "fileName": "demo-lab-comprehensive-2025-02-14.pdf"
+    },
+    "followUp": {
+      "reportDate": "2025-08-18",
+      "collectionDate": "2025-08-18",
+      "collectionTime": "08:05 AM",
+      "reportTime": "03:44 PM",
+      "fasting": true,
+      "accessionNumber": "MCL-2025-08180842",
+      "specimenId": "SP-8842-AUG18-A",
+      "fileName": "demo-lab-comprehensive-2025-08-18.pdf"
+    }
+  },
+  "biomarkers": [
+    {
+      "biomarkerKey": "total_cholesterol",
+      "testName": "Total Cholesterol",
+      "alias": "Cholesterol, Total",
+      "category": "Lipid Panel",
+      "unit": "mg/dL",
+      "referenceLow": 125,
+      "referenceHigh": 200,
+      "baseline": { "value": 218, "flag": "H" },
+      "followUp": { "value": 192, "flag": "" }
+    },
+    {
+      "biomarkerKey": "ldl_cholesterol",
+      "testName": "LDL Cholesterol",
+      "alias": "LDL-C",
+      "category": "Lipid Panel",
+      "unit": "mg/dL",
+      "referenceLow": 0,
+      "referenceHigh": 100,
+      "baseline": { "value": 142, "flag": "H" },
+      "followUp": { "value": 118, "flag": "H" }
+    },
+    {
+      "biomarkerKey": "hdl_cholesterol",
+      "testName": "HDL Cholesterol",
+      "alias": "HDL-C",
+      "category": "Lipid Panel",
+      "unit": "mg/dL",
+      "referenceLow": 40,
+      "referenceHigh": null,
+      "baseline": { "value": 44, "flag": "" },
+      "followUp": { "value": 48, "flag": "" }
+    },
+    {
+      "biomarkerKey": "triglycerides",
+      "testName": "Triglycerides",
+      "alias": "TG",
+      "category": "Lipid Panel",
+      "unit": "mg/dL",
+      "referenceLow": 0,
+      "referenceHigh": 150,
+      "baseline": { "value": 168, "flag": "H" },
+      "followUp": { "value": 132, "flag": "" }
+    },
+    {
+      "biomarkerKey": "non_hdl_cholesterol",
+      "testName": "Non-HDL Cholesterol",
+      "alias": "Non-HDL-C",
+      "category": "Lipid Panel",
+      "unit": "mg/dL",
+      "referenceLow": 0,
+      "referenceHigh": 130,
+      "baseline": { "value": 174, "flag": "H" },
+      "followUp": { "value": 144, "flag": "H" }
+    },
+    {
+      "biomarkerKey": "apolipoprotein_b",
+      "testName": "Apolipoprotein B",
+      "alias": "Apo B",
+      "category": "Lipid Panel",
+      "unit": "mg/dL",
+      "referenceLow": 0,
+      "referenceHigh": 90,
+      "baseline": { "value": 98, "flag": "H" },
+      "followUp": { "value": 86, "flag": "" }
+    },
+    {
+      "biomarkerKey": "lipoprotein_a",
+      "testName": "Lipoprotein(a)",
+      "alias": "Lp(a)",
+      "category": "Lipid Panel",
+      "unit": "mg/dL",
+      "referenceLow": 0,
+      "referenceHigh": 30,
+      "baseline": { "value": 22, "flag": "" },
+      "followUp": { "value": 21, "flag": "" }
+    },
+    {
+      "biomarkerKey": "glucose",
+      "testName": "Glucose (Fasting)",
+      "alias": "Fasting Blood Glucose",
+      "category": "Blood Sugar",
+      "unit": "mg/dL",
+      "referenceLow": 70,
+      "referenceHigh": 99,
+      "baseline": { "value": 108, "flag": "H" },
+      "followUp": { "value": 94, "flag": "" }
+    },
+    {
+      "biomarkerKey": "hba1c",
+      "testName": "HbA1c",
+      "alias": "Hemoglobin A1c",
+      "category": "Blood Sugar",
+      "unit": "%",
+      "referenceLow": 4.0,
+      "referenceHigh": 5.6,
+      "baseline": { "value": 5.8, "flag": "H" },
+      "followUp": { "value": 5.5, "flag": "" }
+    },
+    {
+      "biomarkerKey": "insulin",
+      "testName": "Insulin (Fasting)",
+      "alias": "Fasting Insulin",
+      "category": "Blood Sugar",
+      "unit": "µIU/mL",
+      "referenceLow": 2.6,
+      "referenceHigh": 24.9,
+      "baseline": { "value": 18.4, "flag": "" },
+      "followUp": { "value": 12.6, "flag": "" }
+    },
+    {
+      "biomarkerKey": "creatinine",
+      "testName": "Creatinine",
+      "alias": "Serum Creatinine",
+      "category": "Kidney",
+      "unit": "mg/dL",
+      "referenceLow": 0.74,
+      "referenceHigh": 1.35,
+      "baseline": { "value": 1.02, "flag": "" },
+      "followUp": { "value": 0.98, "flag": "" }
+    },
+    {
+      "biomarkerKey": "bun",
+      "testName": "Blood Urea Nitrogen",
+      "alias": "BUN",
+      "category": "Kidney",
+      "unit": "mg/dL",
+      "referenceLow": 7,
+      "referenceHigh": 20,
+      "baseline": { "value": 16, "flag": "" },
+      "followUp": { "value": 14, "flag": "" }
+    },
+    {
+      "biomarkerKey": "egfr",
+      "testName": "eGFR",
+      "alias": "Estimated GFR",
+      "category": "Kidney",
+      "unit": "mL/min/1.73m²",
+      "referenceLow": 90,
+      "referenceHigh": null,
+      "baseline": { "value": 94, "flag": "" },
+      "followUp": { "value": 98, "flag": "" }
+    },
+    {
+      "biomarkerKey": "uric_acid",
+      "testName": "Uric Acid",
+      "alias": "Serum Uric Acid",
+      "category": "Kidney",
+      "unit": "mg/dL",
+      "referenceLow": 3.4,
+      "referenceHigh": 7.0,
+      "baseline": { "value": 6.8, "flag": "" },
+      "followUp": { "value": 5.9, "flag": "" }
+    },
+    {
+      "biomarkerKey": "alt",
+      "testName": "ALT",
+      "alias": "Alanine Aminotransferase",
+      "category": "Liver",
+      "unit": "U/L",
+      "referenceLow": 7,
+      "referenceHigh": 56,
+      "baseline": { "value": 38, "flag": "" },
+      "followUp": { "value": 32, "flag": "" }
+    },
+    {
+      "biomarkerKey": "ast",
+      "testName": "AST",
+      "alias": "Aspartate Aminotransferase",
+      "category": "Liver",
+      "unit": "U/L",
+      "referenceLow": 10,
+      "referenceHigh": 40,
+      "baseline": { "value": 28, "flag": "" },
+      "followUp": { "value": 24, "flag": "" }
+    },
+    {
+      "biomarkerKey": "alp",
+      "testName": "Alkaline Phosphatase",
+      "alias": "ALP",
+      "category": "Liver",
+      "unit": "U/L",
+      "referenceLow": 44,
+      "referenceHigh": 147,
+      "baseline": { "value": 72, "flag": "" },
+      "followUp": { "value": 68, "flag": "" }
+    },
+    {
+      "biomarkerKey": "bilirubin_total",
+      "testName": "Total Bilirubin",
+      "alias": "Bilirubin, Total",
+      "category": "Liver",
+      "unit": "mg/dL",
+      "referenceLow": 0.1,
+      "referenceHigh": 1.2,
+      "baseline": { "value": 0.7, "flag": "" },
+      "followUp": { "value": 0.6, "flag": "" }
+    },
+    {
+      "biomarkerKey": "albumin",
+      "testName": "Albumin",
+      "alias": "Serum Albumin",
+      "category": "Liver",
+      "unit": "g/dL",
+      "referenceLow": 3.5,
+      "referenceHigh": 5.5,
+      "baseline": { "value": 4.4, "flag": "" },
+      "followUp": { "value": 4.5, "flag": "" }
+    },
+    {
+      "biomarkerKey": "ggt",
+      "testName": "GGT",
+      "alias": "Gamma-GT",
+      "category": "Liver",
+      "unit": "U/L",
+      "referenceLow": 8,
+      "referenceHigh": 61,
+      "baseline": { "value": 42, "flag": "" },
+      "followUp": { "value": 36, "flag": "" }
+    },
+    {
+      "biomarkerKey": "tsh",
+      "testName": "TSH",
+      "alias": "Thyroid Stimulating Hormone",
+      "category": "Thyroid",
+      "unit": "mIU/L",
+      "referenceLow": 0.4,
+      "referenceHigh": 4.0,
+      "baseline": { "value": 2.1, "flag": "" },
+      "followUp": { "value": 1.9, "flag": "" }
+    },
+    {
+      "biomarkerKey": "free_t4",
+      "testName": "Free T4",
+      "alias": "Free Thyroxine",
+      "category": "Thyroid",
+      "unit": "ng/dL",
+      "referenceLow": 0.8,
+      "referenceHigh": 1.8,
+      "baseline": { "value": 1.2, "flag": "" },
+      "followUp": { "value": 1.3, "flag": "" }
+    },
+    {
+      "biomarkerKey": "free_t3",
+      "testName": "Free T3",
+      "alias": "Free Triiodothyronine",
+      "category": "Thyroid",
+      "unit": "pg/mL",
+      "referenceLow": 2.3,
+      "referenceHigh": 4.2,
+      "baseline": { "value": 3.1, "flag": "" },
+      "followUp": { "value": 3.2, "flag": "" }
+    },
+    {
+      "biomarkerKey": "hemoglobin",
+      "testName": "Hemoglobin",
+      "alias": "Hgb",
+      "category": "Complete Blood Count",
+      "unit": "g/dL",
+      "referenceLow": 13.5,
+      "referenceHigh": 17.5,
+      "baseline": { "value": 14.8, "flag": "" },
+      "followUp": { "value": 15.1, "flag": "" }
+    },
+    {
+      "biomarkerKey": "hematocrit",
+      "testName": "Hematocrit",
+      "alias": "Hct",
+      "category": "Complete Blood Count",
+      "unit": "%",
+      "referenceLow": 38.3,
+      "referenceHigh": 48.6,
+      "baseline": { "value": 43.2, "flag": "" },
+      "followUp": { "value": 44.0, "flag": "" }
+    },
+    {
+      "biomarkerKey": "wbc",
+      "testName": "White Blood Cells",
+      "alias": "WBC Count",
+      "category": "Complete Blood Count",
+      "unit": "K/µL",
+      "referenceLow": 4.5,
+      "referenceHigh": 11.0,
+      "baseline": { "value": 6.2, "flag": "" },
+      "followUp": { "value": 5.9, "flag": "" }
+    },
+    {
+      "biomarkerKey": "rbc",
+      "testName": "Red Blood Cells",
+      "alias": "RBC Count",
+      "category": "Complete Blood Count",
+      "unit": "M/µL",
+      "referenceLow": 4.35,
+      "referenceHigh": 5.65,
+      "baseline": { "value": 4.82, "flag": "" },
+      "followUp": { "value": 4.88, "flag": "" }
+    },
+    {
+      "biomarkerKey": "platelets",
+      "testName": "Platelets",
+      "alias": "Platelet Count",
+      "category": "Complete Blood Count",
+      "unit": "K/µL",
+      "referenceLow": 150,
+      "referenceHigh": 400,
+      "baseline": { "value": 248, "flag": "" },
+      "followUp": { "value": 256, "flag": "" }
+    },
+    {
+      "biomarkerKey": "vitamin_d",
+      "testName": "Vitamin D (25-OH)",
+      "alias": "25-Hydroxyvitamin D",
+      "category": "Vitamins & Minerals",
+      "unit": "ng/mL",
+      "referenceLow": 30,
+      "referenceHigh": 100,
+      "baseline": { "value": 22, "flag": "L" },
+      "followUp": { "value": 34, "flag": "" }
+    },
+    {
+      "biomarkerKey": "vitamin_b12",
+      "testName": "Vitamin B12",
+      "alias": "Cobalamin",
+      "category": "Vitamins & Minerals",
+      "unit": "pg/mL",
+      "referenceLow": 200,
+      "referenceHigh": 900,
+      "baseline": { "value": 412, "flag": "" },
+      "followUp": { "value": 438, "flag": "" }
+    },
+    {
+      "biomarkerKey": "ferritin",
+      "testName": "Ferritin",
+      "alias": "Serum Ferritin",
+      "category": "Vitamins & Minerals",
+      "unit": "ng/mL",
+      "referenceLow": 30,
+      "referenceHigh": 400,
+      "baseline": { "value": 118, "flag": "" },
+      "followUp": { "value": 132, "flag": "" }
+    },
+    {
+      "biomarkerKey": "iron",
+      "testName": "Iron",
+      "alias": "Serum Iron",
+      "category": "Vitamins & Minerals",
+      "unit": "µg/dL",
+      "referenceLow": 65,
+      "referenceHigh": 175,
+      "baseline": { "value": 88, "flag": "" },
+      "followUp": { "value": 96, "flag": "" }
+    },
+    {
+      "biomarkerKey": "crp",
+      "testName": "C-Reactive Protein",
+      "alias": "CRP",
+      "category": "Inflammation",
+      "unit": "mg/L",
+      "referenceLow": 0,
+      "referenceHigh": 3.0,
+      "baseline": { "value": 4.2, "flag": "H" },
+      "followUp": { "value": 2.8, "flag": "" }
+    },
+    {
+      "biomarkerKey": "esr",
+      "testName": "ESR",
+      "alias": "Erythrocyte Sedimentation Rate",
+      "category": "Inflammation",
+      "unit": "mm/hr",
+      "referenceLow": 0,
+      "referenceHigh": 15,
+      "baseline": { "value": 12, "flag": "" },
+      "followUp": { "value": 8, "flag": "" }
+    },
+    {
+      "biomarkerKey": "sodium",
+      "testName": "Sodium",
+      "alias": "Na",
+      "category": "Electrolytes",
+      "unit": "mEq/L",
+      "referenceLow": 136,
+      "referenceHigh": 145,
+      "baseline": { "value": 140, "flag": "" },
+      "followUp": { "value": 141, "flag": "" }
+    },
+    {
+      "biomarkerKey": "potassium",
+      "testName": "Potassium",
+      "alias": "K",
+      "category": "Electrolytes",
+      "unit": "mEq/L",
+      "referenceLow": 3.5,
+      "referenceHigh": 5.0,
+      "baseline": { "value": 4.2, "flag": "" },
+      "followUp": { "value": 4.3, "flag": "" }
+    },
+    {
+      "biomarkerKey": "calcium",
+      "testName": "Calcium",
+      "alias": "Serum Calcium",
+      "category": "Electrolytes",
+      "unit": "mg/dL",
+      "referenceLow": 8.6,
+      "referenceHigh": 10.2,
+      "baseline": { "value": 9.4, "flag": "" },
+      "followUp": { "value": 9.5, "flag": "" }
+    }
+  ],
+  "prescription": {
+    "prescribedDate": "2025-07-22",
+    "fileName": "demo-prescription-2025-07-22.pdf",
+    "clinicalNote": "Patient presents for medication review following February 2025 comprehensive metabolic panel showing elevated LDL, borderline HbA1c, low vitamin D, and elevated CRP. Lifestyle modifications discussed. Continue current regimen and repeat labs in August.",
+    "medications": [
+      {
+        "medicationName": "Atorvastatin",
+        "genericName": "Atorvastatin Calcium",
+        "dosage": "20 mg",
+        "frequency": "Take 1 tablet by mouth once daily at bedtime",
+        "route": "Oral",
+        "quantity": "90 tablets",
+        "refills": 3,
+        "notes": "For elevated LDL cholesterol. Avoid grapefruit juice."
+      },
+      {
+        "medicationName": "Cholecalciferol",
+        "genericName": "Vitamin D3",
+        "dosage": "2000 IU",
+        "frequency": "Take 1 capsule by mouth once daily with food",
+        "route": "Oral",
+        "quantity": "90 capsules",
+        "refills": 3,
+        "notes": "Repletion for low 25-hydroxyvitamin D."
+      },
+      {
+        "medicationName": "Metformin",
+        "genericName": "Metformin HCl",
+        "dosage": "500 mg",
+        "frequency": "Take 1 tablet by mouth twice daily with meals",
+        "route": "Oral",
+        "quantity": "180 tablets",
+        "refills": 2,
+        "notes": "For prediabetes management (HbA1c 5.8%). Monitor GI tolerance."
+      },
+      {
+        "medicationName": "Omega-3 Acid Ethyl Esters",
+        "genericName": "Fish Oil Concentrate",
+        "dosage": "1000 mg",
+        "frequency": "Take 1 capsule by mouth once daily",
+        "route": "Oral",
+        "quantity": "90 capsules",
+        "refills": 2,
+        "notes": "Adjunct for hypertriglyceridemia."
+      },
+      {
+        "medicationName": "Lisinopril",
+        "genericName": "Lisinopril",
+        "dosage": "10 mg",
+        "frequency": "Take 1 tablet by mouth once daily",
+        "route": "Oral",
+        "quantity": "90 tablets",
+        "refills": 3,
+        "notes": "Blood pressure management. Monitor renal function."
+      }
+    ]
+  }
+}

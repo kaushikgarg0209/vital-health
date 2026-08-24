@@ -6,8 +6,10 @@ import { UserAccountMenu } from "./user-account-menu";
 import { VitalLogo } from "./vital-logo";
 
 const navLinks = [
-  { href: "/#features", label: "Features" },
+  { href: "/#capabilities", label: "Capabilities" },
+  { href: "/#platform", label: "Platform" },
   { href: "/#how-it-works", label: "How it works" },
+  { href: "/#security", label: "Security" },
 ];
 
 type SiteHeaderProps = {

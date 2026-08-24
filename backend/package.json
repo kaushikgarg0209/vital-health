@@ -18,6 +18,7 @@
     "test:nutrition": "tsx scripts/test-nutrition-calculator.ts",
     "test:wellness": "tsx scripts/test-wellness-validation.ts",
     "test:json-extraction": "tsx scripts/test-json-extraction.ts",
+    "generate:demo-fixtures": "tsx scripts/generate-demo-fixtures.ts",
     "test": "npm run test:gemini && npm run test:processing && npm run test:embeddings && npm run test:lab && npm run test:chat && npm run test:family && npm run test:nutrition"
   },
   "keywords": [],
@@ -46,8 +47,10 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.2.0",
     "@types/node": "^26.1.1",
+    "@types/pdfkit": "^0.13.9",
     "@types/uuid": "^10.0.0",
     "nodemon": "^3.1.14",
+    "pdfkit": "^0.17.1",
     "tsx": "^4.23.1",
     "typescript": "^7.0.2"
   }
