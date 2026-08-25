@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "worker": "tsx workers/index.ts",
+    "start:production": "node dist/index.js & npm run worker",
     "test:gemini": "tsx scripts/test-gemini.ts",
     "test:processing": "tsx scripts/test-document-processing.ts",
     "test:embeddings": "tsx scripts/test-embeddings.ts",
