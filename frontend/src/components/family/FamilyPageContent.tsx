@@ -11,11 +11,17 @@ import { FamilyGroupCard } from "@/components/family/FamilyGroupCard";
 import { FamilyStatsStrip } from "@/components/family/FamilyStatsStrip";
 import { buttonVariants } from "@/components/ui/button";
 import { getGroup } from "@/lib/api/family";
+import {
+  buildGroupCardSubtitle,
+  isIncomingPendingInvite,
+  isOutgoingPendingInvite,
+} from "@/lib/family-membership";
 import { familyGroupQueryKey, useFamilyGroups } from "@/hooks/useFamily";
 import { cn } from "@/lib/utils";
 
 type FamilyPageContentProps = {
   currentUserId: string;
+  currentUserEmail: string;
 };
 
 function FamilyPageSkeleton() {
@@ -35,7 +41,10 @@ function FamilyPageSkeleton() {
   );
 }
 
-export function FamilyPageContent({ currentUserId }: FamilyPageContentProps) {
+export function FamilyPageContent({
+  currentUserId,
+  currentUserEmail,
+}: FamilyPageContentProps) {
   const router = useRouter();
   const { data: groups = [], isLoading, isError } = useFamilyGroups();
   const [createOpen, setCreateOpen] = useState(false);
@@ -48,10 +57,11 @@ export function FamilyPageContent({ currentUserId }: FamilyPageContentProps) {
     })),
   });
 
-  const { roleMap, stats } = useMemo(() => {
-    const roles = new Map<string, string>();
+  const { cardMeta, stats } = useMemo(() => {
+    const subtitles = new Map<string, string>();
     let caringForCount = 0;
-    let pendingCount = 0;
+    let pendingIncomingCount = 0;
+    let pendingOutgoingCount = 0;
 
     for (const query of groupDetailQueries) {
       const detail = query.data;
@@ -59,36 +69,51 @@ export function FamilyPageContent({ currentUserId }: FamilyPageContentProps) {
         continue;
       }
 
-      if (detail.createdBy === currentUserId) {
-        roles.set(detail.id, "Owner");
-      } else {
-        const isCaregiver = detail.memberships.some(
-          (membership) =>
-            membership.viewerUserId === currentUserId && membership.status === "accepted",
-        );
-        roles.set(detail.id, isCaregiver ? "Caregiver" : "Member");
-        if (isCaregiver) {
-          caringForCount += 1;
-        }
+      subtitles.set(
+        detail.id,
+        buildGroupCardSubtitle(detail, currentUserId, currentUserEmail),
+      );
+
+      const isCaregiver = detail.memberships.some(
+        (membership) =>
+          membership.viewerUserId === currentUserId && membership.status === "accepted",
+      );
+
+      if (isCaregiver && detail.createdBy !== currentUserId) {
+        caringForCount += 1;
       }
 
-      pendingCount += detail.memberships.filter(
-        (membership) =>
-          membership.status === "pending" &&
-          (membership.subjectUserId === currentUserId ||
-            membership.inviteeEmail !== null),
-      ).length;
+      for (const membership of detail.memberships) {
+        if (isIncomingPendingInvite(membership, currentUserId, currentUserEmail)) {
+          pendingIncomingCount += 1;
+        }
+
+        if (isOutgoingPendingInvite(membership, currentUserId)) {
+          pendingOutgoingCount += 1;
+        }
+      }
     }
 
     return {
-      roleMap: roles,
+      cardMeta: subtitles,
       stats: {
         groupCount: groups.length,
         caringForCount,
-        pendingCount,
+        pendingIncomingCount,
+        pendingOutgoingCount,
       },
     };
-  }, [groupDetailQueries, currentUserId, groups.length]);
+  }, [groupDetailQueries, currentUserId, currentUserEmail, groups.length]);
+
+  const detailLoadingByGroupId = useMemo(() => {
+    const loading = new Map<string, boolean>();
+
+    groups.forEach((group, index) => {
+      loading.set(group.id, groupDetailQueries[index]?.isLoading ?? false);
+    });
+
+    return loading;
+  }, [groups, groupDetailQueries]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -101,8 +126,8 @@ export function FamilyPageContent({ currentUserId }: FamilyPageContentProps) {
           <div>
             <h1 className="text-2xl font-semibold text-neutral-800">Family Health</h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-500">
-              Share health updates with trusted caregivers and stay informed when someone you care
-              about needs attention.
+              Share health updates with trusted caregivers. Health Monitor and Full Access
+              caregivers receive in-app alerts when your lab trends change.
             </p>
           </div>
 
@@ -132,15 +157,18 @@ export function FamilyPageContent({ currentUserId }: FamilyPageContentProps) {
           <FamilyStatsStrip
             groupCount={stats.groupCount}
             caringForCount={stats.caringForCount}
-            pendingCount={stats.pendingCount}
+            pendingIncomingCount={stats.pendingIncomingCount}
+            pendingOutgoingCount={stats.pendingOutgoingCount}
           />
 
           <div className="space-y-3">
             {groups.map((group) => (
               <FamilyGroupCard
                 key={group.id}
-                group={group}
-                roleLabel={roleMap.get(group.id)}
+                groupId={group.id}
+                groupName={group.name}
+                subtitle={cardMeta.get(group.id)}
+                isLoading={detailLoadingByGroupId.get(group.id) ?? false}
               />
             ))}
           </div>

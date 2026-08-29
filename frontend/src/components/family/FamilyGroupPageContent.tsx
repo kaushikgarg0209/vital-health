@@ -114,7 +114,8 @@ export function FamilyGroupPageContent({ groupId, currentUserId }: FamilyGroupPa
       };
     } else if (owner || isSubject) {
       banner = {
-        message: "You manage this group and can invite caregivers.",
+        message:
+          "You manage this group and can invite caregivers. Health Monitor and Full Access caregivers are notified in-app when your lab trends change (status shifts or significant deltas). Emergency-only access does not receive these alerts.",
         className: "border-primary-200 bg-primary-50 text-primary-900",
       };
     } else if (caregiverMembership) {

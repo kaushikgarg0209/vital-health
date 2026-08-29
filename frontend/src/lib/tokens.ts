@@ -257,22 +257,31 @@ export const permissionLevelTokens = {
     textClass: "text-blue-700",
     bgClass: "bg-blue-100",
     description: "Can see all records, trends, bills, and insurance",
+    alertNote: "Receives in-app alerts when lab results change.",
   },
   monitor: {
     label: "Health Monitor",
     textClass: "text-emerald-700",
     bgClass: "bg-emerald-100",
     description: "Can see lab trends, medications, and appointments only",
+    alertNote: "Receives in-app alerts when lab results change.",
   },
   emergency: {
     label: "Emergency Only",
     textClass: "text-orange-700",
     bgClass: "bg-orange-100",
     description: "Can only access the emergency health brief",
+    alertNote: "Does not receive routine lab change alerts.",
   },
 } satisfies Record<
   PermissionLevel,
-  { label: string; textClass: string; bgClass: string; description: string }
+  {
+    label: string;
+    textClass: string;
+    bgClass: string;
+    description: string;
+    alertNote: string;
+  }
 >;
 
 export const chartColors = [

@@ -1,17 +1,23 @@
 import Link from "next/link";
 import { ChevronRight, Users } from "lucide-react";
-import type { FamilyGroupSummary } from "@/types/family";
 import { cn } from "@/lib/utils";
 
 type FamilyGroupCardProps = {
-  group: FamilyGroupSummary;
-  roleLabel?: string;
+  groupName: string;
+  groupId: string;
+  subtitle?: string;
+  isLoading?: boolean;
 };
 
-export function FamilyGroupCard({ group, roleLabel }: FamilyGroupCardProps) {
+export function FamilyGroupCard({
+  groupName,
+  groupId,
+  subtitle,
+  isLoading = false,
+}: FamilyGroupCardProps) {
   return (
     <Link
-      href={`/family/${group.id}`}
+      href={`/family/${groupId}`}
       className={cn(
         "group flex items-center justify-between gap-4 rounded-xl border border-neutral-100 bg-white p-5 shadow-sm transition-all hover:border-primary-200 hover:shadow-md",
       )}
@@ -21,10 +27,13 @@ export function FamilyGroupCard({ group, roleLabel }: FamilyGroupCardProps) {
           <Users className="size-5" />
         </div>
         <div className="min-w-0">
-          <p className="truncate font-medium text-neutral-800">{group.name}</p>
+          <p className="truncate font-medium text-neutral-800">{groupName}</p>
           <p className="mt-0.5 text-sm text-neutral-500">
-            {group.memberCount} {group.memberCount === 1 ? "member" : "members"}
-            {roleLabel ? ` · ${roleLabel}` : ""}
+            {isLoading ? (
+              <span className="inline-block h-4 w-40 animate-pulse rounded bg-neutral-100" />
+            ) : (
+              subtitle ?? "Member"
+            )}
           </p>
         </div>
       </div>

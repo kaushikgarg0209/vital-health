@@ -32,6 +32,8 @@ export function toUserFacingFamilyError(
       return "This invitation was sent to a different email address. Sign in with the invited account.";
     case "DUPLICATE_INVITE":
       return "An invitation or membership already exists for this person.";
+    case "INVITEE_NOT_REGISTERED":
+      return "No Vital account found for this email. They must sign up first, then you can invite them.";
     case "GROUP_NOT_FOUND":
       return "Family group not found or you do not have access.";
     case "MEMBERSHIP_NOT_FOUND":

@@ -16,7 +16,7 @@ export function GroupStatsStrip({
 }: GroupStatsStripProps) {
   const stats = [
     {
-      label: "Active members",
+      label: "Active caregivers",
       value: activeMembers,
       icon: Users,
       accent: "text-primary-600 bg-primary-50",
@@ -28,7 +28,7 @@ export function GroupStatsStrip({
       accent: "text-emerald-600 bg-emerald-50",
     },
     {
-      label: "Pending invites",
+      label: "Invites you sent",
       value: pendingInvites,
       icon: Clock,
       accent: pendingInvites > 0 ? "text-amber-600 bg-amber-50" : "text-neutral-500 bg-neutral-50",

@@ -9,5 +9,5 @@ export default async function FamilyPage() {
     redirect("/login?next=/family");
   }
 
-  return <FamilyPageContent currentUserId={session.user.id} />;
+  return <FamilyPageContent currentUserId={session.user.id} currentUserEmail={session.user.email} />;
 }

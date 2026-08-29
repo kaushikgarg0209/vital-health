@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { isFamilyApiError, toUserFacingFamilyError } from "@/lib/api/family";
 import { useCreateInvitation } from "@/hooks/useFamily";
 import { permissionLevelTokens, type PermissionLevel } from "@/lib/tokens";
+import { inviteEmailSchema } from "@/lib/validation/family";
 import { cn } from "@/lib/utils";
 
 const PERMISSION_LEVELS: PermissionLevel[] = ["monitor", "emergency", "full"];
@@ -58,15 +59,16 @@ export function InviteMemberDialog({ open, onOpenChange, groupId }: InviteMember
     setError(null);
     setSuccessMessage(null);
 
-    const trimmedEmail = email.trim();
-    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      setError("Enter a valid email address.");
+    const parsed = inviteEmailSchema.safeParse({ email: email.trim() });
+
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Enter a valid email address.");
       return;
     }
 
     try {
-      await mutateAsync({ email: trimmedEmail, permissionLevel });
-      setSuccessMessage(`Invitation sent to ${trimmedEmail}.`);
+      await mutateAsync({ email: parsed.data.email, permissionLevel });
+      setSuccessMessage(`Invitation sent to ${parsed.data.email}.`);
       setEmail("");
     } catch (err) {
       if (isFamilyApiError(err)) {
@@ -92,7 +94,7 @@ export function InviteMemberDialog({ open, onOpenChange, groupId }: InviteMember
             <div>
               <h2 className="text-lg font-semibold text-neutral-800">Invite a caregiver</h2>
               <p className="text-sm text-neutral-500">
-                Send someone access to view your health information.
+                Send someone with a Vital account access to view your health information.
               </p>
             </div>
           </div>
@@ -121,7 +123,15 @@ export function InviteMemberDialog({ open, onOpenChange, groupId }: InviteMember
               onChange={(event) => setEmail(event.target.value)}
               autoComplete="email"
             />
+            <p className="text-xs text-neutral-500">
+              They must already have a Vital account with this email.
+            </p>
           </div>
+
+          <p className="rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-xs leading-relaxed text-neutral-600">
+            Health Monitor and Full Access caregivers are notified in-app when your lab
+            results change. Emergency-only access does not receive routine alerts.
+          </p>
 
           <fieldset className="space-y-3">
             <legend className="text-sm font-medium text-neutral-800">Permission level</legend>
@@ -150,7 +160,7 @@ export function InviteMemberDialog({ open, onOpenChange, groupId }: InviteMember
                   <div className="min-w-0 flex-1">
                     <PermissionLevelBadge level={level} />
                     <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">
-                      {token.description}
+                      {token.description} {token.alertNote}
                     </p>
                   </div>
                 </label>

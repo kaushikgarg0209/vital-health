@@ -4,16 +4,20 @@ import { cn } from "@/lib/utils";
 type FamilyStatsStripProps = {
   groupCount: number;
   caringForCount: number;
-  pendingCount: number;
+  pendingIncomingCount: number;
+  pendingOutgoingCount: number;
   className?: string;
 };
 
 export function FamilyStatsStrip({
   groupCount,
   caringForCount,
-  pendingCount,
+  pendingIncomingCount,
+  pendingOutgoingCount,
   className,
 }: FamilyStatsStripProps) {
+  const pendingTotal = pendingIncomingCount + pendingOutgoingCount;
+
   const stats = [
     {
       label: "Family groups",
@@ -29,9 +33,14 @@ export function FamilyStatsStrip({
     },
     {
       label: "Pending invitations",
-      value: pendingCount,
+      value: pendingTotal,
+      detail:
+        pendingTotal > 0
+          ? `${pendingIncomingCount} for you · ${pendingOutgoingCount} sent`
+          : "None awaiting action",
       icon: Clock,
-      accent: pendingCount > 0 ? "text-amber-600 bg-amber-50" : "text-neutral-500 bg-neutral-50",
+      accent:
+        pendingTotal > 0 ? "text-amber-600 bg-amber-50" : "text-neutral-500 bg-neutral-50",
     },
   ];
 
@@ -48,6 +57,9 @@ export function FamilyStatsStrip({
           <div>
             <p className="text-2xl font-semibold tabular-nums text-neutral-800">{stat.value}</p>
             <p className="text-xs text-neutral-500">{stat.label}</p>
+            {"detail" in stat && stat.detail ? (
+              <p className="mt-0.5 text-[11px] text-neutral-400">{stat.detail}</p>
+            ) : null}
           </div>
         </div>
       ))}

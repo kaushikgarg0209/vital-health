@@ -60,6 +60,14 @@ export async function createInvitation(params: CreateInvitationParams): Promise<
 
   const matchedUserId = await findUserIdByEmail(normalizedEmail);
 
+  if (!matchedUserId) {
+    throw new FamilyError(
+      "No Vital account found for this email. They must sign up first.",
+      404,
+      "INVITEE_NOT_REGISTERED",
+    );
+  }
+
   if (matchedUserId === subjectUserId) {
     throw new FamilyError("You cannot invite yourself", 400, "VALIDATION_ERROR");
   }
@@ -116,15 +124,13 @@ export async function createInvitation(params: CreateInvitationParams): Promise<
     permissionLevel,
   });
 
-  if (matchedUserId) {
-    await createNotification({
-      userId: matchedUserId,
-      type: "family_invitation",
-      title: "Family health invitation",
-      body: `${subjectProfile?.full_name ?? "Someone"} invited you to their family health group`,
-      metadata: { groupId, membershipId: membership.id, token, permissionLevel },
-    });
-  }
+  await createNotification({
+    userId: matchedUserId,
+    type: "family_invitation",
+    title: "Family health invitation",
+    body: `${subjectProfile?.full_name ?? "Someone"} invited you to their family health group`,
+    metadata: { groupId, membershipId: membership.id, token, permissionLevel },
+  });
 
   return {
     membershipId: membership.id as string,

@@ -307,14 +307,26 @@ async function main(): Promise<void> {
 
   console.log("Mark-as-read correctly blocked for revoked alert.\n");
 
-  const emergencyInvite = await createInvitation({
-    groupId: group.id,
-    subjectUserId: subject.id,
-    inviteeEmail: `emergency-${Date.now()}@example.com`,
-    permissionLevel: "emergency",
-  });
+  try {
+    await createInvitation({
+      groupId: group.id,
+      subjectUserId: subject.id,
+      inviteeEmail: `unregistered-${Date.now()}@example.com`,
+      permissionLevel: "monitor",
+    });
+    throw new Error("Expected createInvitation to fail for unregistered email");
+  } catch (error) {
+    const code =
+      typeof error === "object" && error !== null && "code" in error
+        ? String((error as { code: string }).code)
+        : "";
 
-  void emergencyInvite;
+    if (code !== "INVITEE_NOT_REGISTERED") {
+      throw error;
+    }
+
+    console.log("Unregistered invite correctly rejected (INVITEE_NOT_REGISTERED).");
+  }
 
   try {
     await buildCaregiverSummary(subject.id, "emergency");
