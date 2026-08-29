@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API_PROXY_URL = process.env.API_PROXY_URL ?? "http://localhost:3001";
 
+const SKIP_RESPONSE_HEADERS = new Set([
+  "set-cookie",
+  // fetch() decompresses the body; forwarding these breaks client parsing
+  "content-encoding",
+  "content-length",
+  "transfer-encoding",
+]);
+
 function copyResponseHeaders(
   backendResponse: Response,
   target: Headers,
 ): void {
   backendResponse.headers.forEach((value, key) => {
-    if (key.toLowerCase() === "set-cookie") {
+    if (SKIP_RESPONSE_HEADERS.has(key.toLowerCase())) {
       return;
     }
 
@@ -63,10 +71,12 @@ async function proxyRequest(
   }
 
   const backendResponse = await fetch(targetUrl.toString(), init);
+  const body =
+    request.method === "HEAD" ? null : await backendResponse.arrayBuffer();
   const responseHeaders = new Headers();
   copyResponseHeaders(backendResponse, responseHeaders);
 
-  return new NextResponse(backendResponse.body, {
+  return new NextResponse(body, {
     status: backendResponse.status,
     statusText: backendResponse.statusText,
     headers: responseHeaders,
